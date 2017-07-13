@@ -2,7 +2,6 @@ import * as soundworks from 'soundworks/client';
 import { decibelToLinear } from 'soundworks/utils/math';
 import Beacon from '../../shared/services/client/Beacon';
 import Mixer from './Mixer';
-import InstrumentStore from './instrument/InstrumentStore';
 import LoopPlayer from './LoopPlayer';
 import CircularView from './instrument/CircularView';
 import setup from '../../shared/setup';
