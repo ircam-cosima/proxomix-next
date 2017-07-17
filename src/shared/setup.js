@@ -113,6 +113,10 @@ const setup = {
         length: 8,
         buffer: 'fx-glitch-2.wav',
         offset: 0,
+      }, {
+        length: 8,
+        buffer: 'fx-glitch-3.wav',
+        offset: 0,
       }],
     },
     'dist-loop': {
