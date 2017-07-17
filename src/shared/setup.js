@@ -10,8 +10,9 @@ const setup = {
     measureDuration: measureDuration,
   },
   instruments: {
-    'drums-bd-hh1': {
-      type: 'loop',
+    'Arpeggiators': {
+      category: 'loop',
+      type: 'multi loop',
       display: {
         type: 'circular',
         length: 8,
@@ -31,24 +32,24 @@ const setup = {
         }],
       },
       loop: [{
-        length: 4,
-        audioBuffer: 'drums-bd-hh1-break.mp3',
-        startOffset: beatDuration + 4 * measureDuration,
-        continue: true,
+        length: 8,
+        audioBuffer: 'Arpeggiators (#1).wav',
+        startOffset: 0,
       }, {
-        repeat: 21,
-        length: 4,
-        audioBuffer: 'drums-bd-hh1.mp3',
-        startOffset: beatDuration,
+        length: 8,
+        audioBuffer: 'Arpeggiators (#2).wav',
+        startOffset: 0,
       }, {
-        length: 4,
-        audioBuffer: 'drums-bd-hh1-break.mp3',
-        startOffset: beatDuration,
+        length: 8,
+        audioBuffer: 'Arpeggiators (#3).wav',
+        startOffset: 0,
       }],
       preview: 1,
     },
-    'drums-hh2-hh3': {
-      type: 'loop',
+    'Pads 1': {
+      category: 'loop',
+      type: 'multi loop',
+      category: 'multi loop'
       display: {
         type: 'circular',
         length: 8,
@@ -67,14 +68,24 @@ const setup = {
           active: false, // define if can trigger actions or not, if true should define an id
         }],
       },
-      loop: {
-        length: 4,
-        audioBuffer: 'drums-hh2-hh3.mp3',
-        startOffset: beatDuration,
-      },
+      loop: [{
+        length: 8,
+        audioBuffer: 'Pads 1 (#1).wav',
+        startOffset: 0,
+      }, {
+        length: 8,
+        audioBuffer: 'Pads 1 (#2).wav',
+        startOffset: 0,
+      }, {
+        length: 8,
+        audioBuffer: 'Pads 1 (#3).wav',
+        startOffset: 0,
+      }],
+      preview: 1,
     },
-    'drums-sd-bell': {
-      type: 'loop',
+    'Melo 1': {
+      category: 'loop',
+      type: 'single loop',
       display: {
         type: 'circular',
         length: 8,
@@ -94,16 +105,18 @@ const setup = {
         }],
       },
       loop: {
-        length: 4,
-        audioBuffer: 'drums-sd-bell.mp3',
-        startOffset: beatDuration,
+        length: 8,
+        audioBuffer: 'Melo 1.wav',
+        startOffset: 0,
       },
+      preview: 1,
     },
-    'drums-clap': {
-      type: 'loop',
+    'Melo 2': {
+      category: 'loop',
+      type: 'single loop',
       display: {
         type: 'circular',
-        length: 8,
+        length: 32,
         renderers: [{
           type: 'measures',
           zone: 0,
@@ -120,13 +133,15 @@ const setup = {
         }],
       },
       loop: {
-        length: 4,
-        audioBuffer: 'drums-clap.mp3',
-        startOffset: beatDuration,
+        length: 32,
+        audioBuffer: 'Melo 2.wav',
+        startOffset: 0,
       },
+      preview: 1,
     },
-    'drums-sh1-sh2': {
-      type: 'loop',
+    'Chord Bass': {
+      category: 'loop',
+      type: 'single loop',
       display: {
         type: 'circular',
         length: 8,
@@ -146,10 +161,99 @@ const setup = {
         }],
       },
       loop: {
-        length: 1,
-        audioBuffer: 'drums-sh1-sh2.mp3',
-        startOffset: beatDuration,
+        length: 8,
+        audioBuffer: 'Chord Bass.wav',
+        startOffset: 0,
       },
+      preview: 1,
+    },
+    'Pad Bass': {
+      category: 'loop',
+      type: 'single loop',
+      display: {
+        type: 'circular',
+        length: 8,
+        renderers: [{
+          type: 'measures',
+          zone: 0,
+          color: '#ffffff',
+          opacity: 0.2,
+          // active: false, // define if can trigger actions or not, if true should define an id
+        }, {
+          type: 'cursor',
+          color: '#000000',
+          opacity: 1,
+          fadeOpacity: 0.02,
+          numZones: 1,
+          active: false, // define if can trigger actions or not, if true should define an id
+        }],
+      },
+      loop: {
+        length: 8,
+        audioBuffer: 'Pad Bass.wav',
+        startOffset: 0,
+      },
+      preview: 1,
+    },
+    'Arpeggiator Bass': {
+      category: 'loop',
+      type: 'single loop',
+      display: {
+        type: 'circular',
+        length: 8,
+        renderers: [{
+          type: 'measures',
+          zone: 0,
+          color: '#ffffff',
+          opacity: 0.2,
+          // active: false, // define if can trigger actions or not, if true should define an id
+        }, {
+          type: 'cursor',
+          color: '#000000',
+          opacity: 1,
+          fadeOpacity: 0.02,
+          numZones: 1,
+          active: false, // define if can trigger actions or not, if true should define an id
+        }],
+      },
+      loop: {
+        length: 8,
+        audioBuffer: 'Arpeggiator Bass.wav',
+        startOffset: 0,
+      },
+      preview: 1,
+    },
+    'FX Glitch 1 + 2': {
+      category: 'loop',
+      type: 'multi loop',
+      display: {
+        type: 'circular',
+        length: 8,
+        renderers: [{
+          type: 'measures',
+          zone: 0,
+          color: '#ffffff',
+          opacity: 0.2,
+          // active: false, // define if can trigger actions or not, if true should define an id
+        }, {
+          type: 'cursor',
+          color: '#000000',
+          opacity: 1,
+          fadeOpacity: 0.02,
+          numZones: 1,
+          active: false, // define if can trigger actions or not, if true should define an id
+        }],
+      },
+      loop: [{
+        length: 8,
+        audioBuffer: 'FX Glitch (#1).wav',
+        startOffset: 0,
+      }, {
+        length: 8,
+        audioBuffer: 'FX Glitch (#2).wav',
+        startOffset: 0,
+      }],
+      preview: 1,
     },
   },
 };
