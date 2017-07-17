@@ -54,15 +54,11 @@ class LoopView extends CanvasView {
     const measureOptions = {
       zone: 0,
       color: '#ffffff',
-      opacity: 0.2,
-      // active: false, // define if can trigger actions or not, if true should define an id
+      opacity: 0.33,
     };
 
     const measureRenderer = new MeasuresRenderer(this.length, measureOptions);
     this.addRenderer(measureRenderer);
-
-    this.cursorRenderer = cursorRenderer;
-    this.measureRenderer = measureRenderer;
   }
 
   onResize(width, height, orientation) {

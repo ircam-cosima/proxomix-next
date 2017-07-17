@@ -47,7 +47,7 @@ class MeasuresRenderer extends BaseArcRenderer {
 
     _ctx.strokeStyle = this.options.color;
     _ctx.globalAlpha = this.options.opacity;
-    _ctx.lineWidth = this.arcWidth;
+    _ctx.lineWidth = this.arcWidth - 2;
 
     this.segments.forEach((angles) => {
       _ctx.beginPath();
