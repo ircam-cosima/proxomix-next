@@ -11,16 +11,16 @@ const audioContext = audio.audioContext;
  * @param {}
  */
 class CursorRenderer extends BaseArcRenderer {
-  constructor(displayLength, config, metricScheduler) {
+  constructor(displayLength, options, metricScheduler) {
     super(0, displayLength);
 
 
-    this.config = Object.assign({
+    this.options = Object.assign({
       color: '#000000',
       opacity: 1,
       fadeOpacity: 0.02,
       numZones: 1,
-    }, config);
+    }, options);
 
     this.metricScheduler = metricScheduler;
   }
@@ -32,7 +32,7 @@ class CursorRenderer extends BaseArcRenderer {
     const height = this.canvasHeight;
     const radius = this.radius;
     const halfWidth = this.arcWidth / 2;
-    const numZones = this.config.numZones;
+    const numZones = this.options.numZones;
     const currentTime = audioContext.currentTime;
     const currentPosition = this.metricScheduler.getMetricPositionAtAudioTime(currentTime);
     const angle = this.getAngleFromPosition(currentPosition);
@@ -43,7 +43,7 @@ class CursorRenderer extends BaseArcRenderer {
 
     // _ctx.globalCompositeOperation = 'destination-out';
     // _ctx.fillStyle = '#000000';
-    // _ctx.globalAlpha = this.config.fadeOpacity;
+    // _ctx.globalAlpha = this.options.fadeOpacity;
     // // _ctx.globalAlpha = 0.15;
 
     // _ctx.fillRect(0, 0, width, height);
@@ -52,9 +52,9 @@ class CursorRenderer extends BaseArcRenderer {
     _ctx.clearRect(0, 0, width, height);
     // cursor
     _ctx.save();
-    // _ctx.strokeStyle = this.config.color;
+    // _ctx.strokeStyle = this.options.color;
     _ctx.strokeStyle = '#ffffff';
-    _ctx.globalAlpha = this.config.opacity;
+    _ctx.globalAlpha = this.options.opacity;
     _ctx.lineWidth = 3;
 
     _ctx.translate(width / 2, height / 2);

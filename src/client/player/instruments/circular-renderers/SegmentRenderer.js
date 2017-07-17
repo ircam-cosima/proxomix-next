@@ -4,35 +4,35 @@ const _2PI = 2 * Math.PI;
 
 /**
  * @param {Number} displayLength - Nbr of measures represented in the whole circle.
- * @param {Object} config
+ * @param {Object} options
  */
 class SegmentRenderer extends BaseArcRenderer {
-  constructor(displayLength, config) {
-    super(config.zone, displayLength);
+  constructor(displayLength, options) {
+    super(options.zone, displayLength);
 
-    this.config = Object.assign({
+    this.options = Object.assign({
       color: '#565656',
       opacity: 0.5,
       start: 0,
       length: displayLength,
-    }, config);
+    }, options);
 
-    console.log(this.config);
+    console.log(this.options);
   }
 
   init() {
     super.init();
-    const config = this.config;
+    const options = this.options;
 
-    this.color = config.color;
-    this.startAngle = this.getAngleFromPosition(config.start);
+    this.color = options.color;
+    this.startAngle = this.getAngleFromPosition(options.start);
 
-    if (config.length === Infinity)
+    if (options.length === Infinity)
       this.stopAngle = this.startAngle + _2PI;
-    else if (config.length === this.displayLength)
-      this.stopAngle = this.getAngleFromPosition(config.start, true);
+    else if (options.length === this.displayLength)
+      this.stopAngle = this.getAngleFromPosition(options.start, true);
     else
-      this.stopAngle = this.getAngleFromPosition(config.start + config.length);
+      this.stopAngle = this.getAngleFromPosition(options.start + options.length);
 
     this._render();
   }
@@ -54,7 +54,7 @@ class SegmentRenderer extends BaseArcRenderer {
     _ctx.translate(width / 2, height / 2);
 
     _ctx.strokeStyle = this.color;
-    _ctx.globalAlpha = this.config.opacity;
+    _ctx.globalAlpha = this.options.opacity;
     _ctx.lineWidth = this.arcWidth;
 
     _ctx.beginPath();

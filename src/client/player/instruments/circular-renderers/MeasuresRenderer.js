@@ -4,16 +4,16 @@ import BaseArcRenderer from './BaseArcRenderer';
  * Display the measures as segments.
  *
  * @param {Number} displayLength - Nbr of measures represented in the whole circle.
- * @param {Object} config
+ * @param {Object} options
  */
 class MeasuresRenderer extends BaseArcRenderer {
-  constructor(displayLength, config) {
-    super(config.zone, displayLength);
+  constructor(displayLength, options) {
+    super(options.zone, displayLength);
 
-    this.config = Object.assign({
+    this.options = Object.assign({
       color: '#ffffff',
       opacity: 0.5,
-    }, config);
+    }, options);
   }
 
   init() {
@@ -45,8 +45,8 @@ class MeasuresRenderer extends BaseArcRenderer {
     _ctx.save();
     _ctx.translate(width / 2, height / 2);
 
-    _ctx.strokeStyle = this.config.color;
-    _ctx.globalAlpha = this.config.opacity;
+    _ctx.strokeStyle = this.options.color;
+    _ctx.globalAlpha = this.options.opacity;
     _ctx.lineWidth = this.arcWidth;
 
     this.segments.forEach((angles) => {

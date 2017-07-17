@@ -5,18 +5,18 @@ const abs = Math.abs;
 /**
  * Piano-roll like circular renderer.
  * @param {Number} displayLength - Number of measures represented by a full circle.
- * @param {Object} config
+ * @param {Object} options
  * @param {Array<Array<Number>>} pattern - Pattern to be displayed.
  * @param {Array<Number>} boundaries - Min and max values of the pattern.
  */
 class PatternRenderer extends BaseArcRenderer {
-  constructor(displayLength, config) {
-    super(config.zone, displayLength);
+  constructor(displayLength, options) {
+    super(options.zone, displayLength);
 
-    this.config = Object.assign({
+    this.options = Object.assign({
       opacity: 1,
       color: '#ffffff',
-    }, config);
+    }, options);
 
     this.segments = [];
   }
@@ -24,8 +24,8 @@ class PatternRenderer extends BaseArcRenderer {
   onResize(width, height, orientation) {
     super.onResize(width, height, orientation);
 
-    const score = this.config.score;
-    const pattern = this.config.pattern;
+    const score = this.options.score;
+    const pattern = this.options.pattern;
 
     let min = +Infinity;
     let max = -Infinity;
@@ -84,8 +84,8 @@ class PatternRenderer extends BaseArcRenderer {
     _ctx.save();
     _ctx.translate(width / 2, height / 2);
 
-    _ctx.strokeStyle = this.config.color;
-    _ctx.globalAlpha = this.config.opacity;
+    _ctx.strokeStyle = this.options.color;
+    _ctx.globalAlpha = this.options.opacity;
     _ctx.lineWidth = this.noteWidth;
 
     this.segments.forEach((segment) => {

@@ -1,25 +1,24 @@
 import * as soundworks from 'soundworks/client';
-import { decibelToLinear } from 'soundworks/utils/math';
 
 const audio = soundworks.audio;
 const audioContext = soundworks.audioContext;
 const audioScheduler = soundworks.audio.getScheduler();
 
 function appendSegments(segments, loopSegment, measureDuration) {
-  const buffer = loopSegment.buffer;
-  const bufferDuration = buffer ? buffer.duration : 0;
-  const offset = loopSegment.offset || 0;
-  const gain = loopSegment.gain || 0;
+  const audioBuffer = loopSegment.audioBuffer;
+  const bufferDuration = audioBuffer ? audioBuffer.duration : 0;
+  const startOffset = loopSegment.startOffset;
   const repeat = loopSegment.repeat || 1;
+  const length = loopSegment.length ||  Math.floor((audioBuffer.duration / measureDuration) + 0.5);
 
   for (let n = 0; n < repeat; n++) {
     let cont = !!loopSegment.continue;
 
-    for (let i = 0; i < loopSegment.length; i++) {
-      const offsetInBuffer = offset + i * measureDuration;
+    for (let i = 0; i < length; i++) {
+      const offset = startOffset + i * measureDuration;
 
-      if (offsetInBuffer < bufferDuration) {
-        const segment = new Segment(buffer, offsetInBuffer, Infinity, 0, gain, cont);
+      if (offset < bufferDuration) {
+        const segment = new Segment(audioBuffer, offset, Infinity, 0, cont);
         segments.push(segment);
       }
 
@@ -29,29 +28,25 @@ function appendSegments(segments, loopSegment, measureDuration) {
 }
 
 class Segment {
-  constructor(buffer, offsetInBuffer = 0, durationInBuffer = Infinity, offsetInMeasure = 0, gain = 0, cont = false) {
-    this.buffer = buffer;
+  constructor(audioBuffer, offsetInBuffer = 0, durationInBuffer = Infinity, offsetInMeasure = 0, cont = false) {
+    this.audioBuffer = audioBuffer;
     this.offsetInBuffer = offsetInBuffer;
     this.durationInBuffer = durationInBuffer; // 0: continue untill next segment starts
     this.offsetInMeasure = offsetInMeasure;
-    this.gain = gain;
     this.continue = cont; // segment continues previous segment
   }
 }
 
 class SegmentTrack {
-  constructor(segmentLayers, transitionTime = 0.05) {
+  constructor(segments, transitionTime = 0.05) {
     this.src = audioContext.createBufferSource();
 
-    this.segmentLayers = segmentLayers;
+    this.segments = segments;
     this.transitionTime = transitionTime;
 
     this.minCutoffFreq = 5;
     this.maxCutoffFreq = audioContext.sampleRate / 2;
     this.logCutoffRatio = Math.log(this.maxCutoffFreq / this.minCutoffFreq);
-
-    this.layerIndex = 0;
-    this.discontinue = true;
 
     const cutoff = audioContext.createBiquadFilter();
     cutoff.type = 'lowpass';
@@ -63,13 +58,31 @@ class SegmentTrack {
     this.env = null;
     this.cutoff = cutoff;
     this.endTime = 0;
+
+    this._active = false;
   }
 
-  startSegment(audioTime, segment) {
-    const buffer = segment.buffer;
-    const bufferDuration = buffer.duration;
-    const offsetInBuffer = segment.offsetInBuffer;
-    const durationInBuffer = Math.min((segment.durationInBuffer || Infinity), bufferDuration - offsetInBuffer);
+  get active() {
+    return this._active;
+  }
+
+  set active(active) {
+    if (!active)
+      this.stopSegment();
+
+    this._active = active;
+  }
+
+  connect(node) {
+    this.output.connect(node);
+  }
+
+  disconnect(node) {
+    this.output.disconnect(node);
+  }
+
+  startSegment(audioTime, audioBuffer, offsetInBuffer, durationInBuffer = Infinity) {
+    const bufferDuration = audioBuffer.duration;
     let transitionTime = this.transitionTime;
 
     if (audioTime < this.endTime - transitionTime) {
@@ -94,12 +107,8 @@ class SegmentTrack {
         transitionTime = offsetInBuffer;
       }
 
-      const gain = audioContext.createGain();
-      gain.connect(this.cutoff);
-      gain.gain.value = decibelToLinear(segment.gain);
-
       const env = audioContext.createGain();
-      env.connect(gain);
+      env.connect(this.cutoff);
 
       if (transitionTime > 0) {
         env.gain.value = 0;
@@ -109,10 +118,12 @@ class SegmentTrack {
 
       const src = audioContext.createBufferSource();
       src.connect(env);
-      src.buffer = buffer;
+      src.buffer = audioBuffer;
       src.start(audioTime + delay, offsetInBuffer - transitionTime);
 
       audioTime += transitionTime;
+
+      durationInBuffer = Math.min(durationInBuffer, bufferDuration - offsetInBuffer);
 
       const endInBuffer = offsetInBuffer + durationInBuffer;
       let endTime = audioTime + durationInBuffer;
@@ -142,14 +153,14 @@ class SegmentTrack {
   }
 
   startMeasure(audioTime, measureIndex, canContinue = false) {
-    const segments = this.segmentLayers[this.layerIndex];
-    const measureIndexInPattern = measureIndex % segments.length;
-    const segment = segments[measureIndexInPattern];
+    if (this._active) {
+      const measureIndexInPattern = measureIndex % this.segments.length;
+      const segment = this.segments[measureIndexInPattern];
 
-    if (segment && (this.discontinue || !(segment.continue && canContinue))) {
-      const delay = segment.offsetInMeasure || 0;
-      this.startSegment(audioTime + delay, segment);
-      this.discontinue = false;
+      if (segment && !(segment.continue && canContinue)) {
+        const delay = segment.offsetInMeasure || 0;
+        this.startSegment(audioTime + delay, segment.audioBuffer, segment.offsetInBuffer, segment.durationInBuffer);
+      }
     }
   }
 
@@ -157,23 +168,10 @@ class SegmentTrack {
     const cutoffFreq = this.minCutoffFreq * Math.exp(this.logCutoffRatio * value);
     this.cutoff.frequency.value = cutoffFreq;
   }
-
-  setLayer(value) {
-    this.layerIndex = value;
-    this.discontinue = true;
-  }
-
-  connect(node) {
-    this.output.connect(node);
-  }
-
-  disconnect(node) {
-    this.output.disconnect(node);
-  }
 }
 
 class LoopPlayer extends audio.TimeEngine {
-  constructor(metricScheduler, measureLength = 1, tempo = 120, tempoUnit = 1 / 4, transitionTime = 0.05, measureCallback = function(measureCount) {}) {
+  constructor(metricScheduler, measureLength = 1, tempo = 60, tempoUnit = 1 / 4, transitionTime = 0.05) {
     super();
 
     this.metricScheduler = metricScheduler;
@@ -181,7 +179,6 @@ class LoopPlayer extends audio.TimeEngine {
     this.tempo = tempo;
     this.tempoUnit = tempoUnit;
     this.transitionTime = transitionTime;
-    this.measureCallback = measureCallback;
 
     this.measureDuration = 60 / (tempo * tempoUnit);
     this.measureIndex = undefined;
@@ -191,8 +188,8 @@ class LoopPlayer extends audio.TimeEngine {
   }
 
   stopAllTracks() {
-    for (let segmentTrack of this.segmentTracks)
-      segmentTrack.stopSegment();
+    for (let track of this.segmentTracks)
+      track.stopSegment();
   }
 
   syncSpeed(syncTime, metricPosition, metricSpeed) {
@@ -217,41 +214,36 @@ class LoopPlayer extends audio.TimeEngine {
 
     this.measureIndex++;
 
-    const canContinue = (this.nextMeasureTime && Math.abs(audioTime - this.nextMeasureTime) < 0.01);
+    const canContinue = !!(this.nextMeasureTime && Math.abs(audioTime - this.nextMeasureTime) < 0.01);
 
-    for (let segmentTrack of this.segmentTracks)
-      segmentTrack.startMeasure(audioTime, this.measureIndex, canContinue);
-
-    this.measureCallback(audioTime, this.measureIndex);
+    for (let track of this.segmentTracks)
+      track.startMeasure(audioTime, this.measureIndex, canContinue);
 
     this.nextMeasureTime = audioTime + this.measureDuration;
 
     return metricPosition + this.measureLength;
   }
 
-  removeLoopTrack(segmentTrack) {
-    segmentTrack.stopSegment();
-    this.segmentTracks.delete(segmentTrack);
+  /** used ? */
+  removeLoopTrack(track) {
+    if (track) {
+      track.stopSegment();
+      this.segmentTracks.delete(track);
+    }
   }
 
-  addLoopTrack(loopLayers) {
-    const segmentLayers = [];
+  addLoopTrack(loop) {
+    const segments = [];
 
-    for (let layer of loopLayers) {
-      const segments = [];
+    if (Array.isArray(loop))
+      loop.forEach((elem) => appendSegments(segments, elem, this.measureDuration));
+    else
+      appendSegments(segments, loop, this.measureDuration);
 
-      if (Array.isArray(layer))
-        layer.forEach((seg) => appendSegments(segments, seg, this.measureDuration));
-      else
-        appendSegments(segments, layer, this.measureDuration);
+    const track = new SegmentTrack(segments, this.transitionTime);
+    this.segmentTracks.add(track);
 
-      segmentLayers.push(segments);
-    }
-
-    const segmentTrack = new SegmentTrack(segmentLayers, this.transitionTime);
-    this.segmentTracks.add(segmentTrack);
-
-    return segmentTrack;
+    return track;
   }
 
   destroy() {

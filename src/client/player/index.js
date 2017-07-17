@@ -2,6 +2,8 @@ import * as soundworks from 'soundworks/client';
 import PlayerExperience from './PlayerExperience.js';
 import serviceViews from '../shared/serviceViews';
 
+import LoopInstrument from './instruments/LoopInstrument';
+
 const init = () => {
   const config = Object.assign({ appContainer: '#container' }, window.soundworksConfig);
   soundworks.client.init(config.clientType, config);

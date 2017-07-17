@@ -28,7 +28,7 @@ export default class PlayerExperience extends Experience {
     super.enter(client);
 
     this.receive(client, 'player:enter', this._onPlayerEnter(client));
-    this.receive(client, 'cutoff:control', this._onCutoffControl(client));
+    this.receive(client, 'instrument:control', this._onInstrumentControl(client));
   }
 
   exit(client) {
@@ -87,9 +87,7 @@ export default class PlayerExperience extends Experience {
     }
   }
 
-  _onCutoffControl(client) {
-    return (playerId, value) => {
-      this.broadcast('player', client, 'cutoff:control', playerId, value);
-    }
+  _onInstrumentControl(client) {
+    return (playerId, name, value) => this.broadcast('player', client, 'instrument:control', playerId, name, value);
   }
 }

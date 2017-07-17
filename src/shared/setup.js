@@ -1,155 +1,79 @@
-const tempo = 126;
+const tempo = 121;
+const tempoUnit = 1/4;
 const beatDuration = 60 / tempo;
-const measureDuration = 4 * beatDuration;
+const beatsInMeasure = 4;
+const measureLength = beatsInMeasure * tempoUnit;
+const measureDuration = beatsInMeasure * beatDuration;
 
 const setup = {
   common: {
     tempo: tempo,
-    tempoUnit: 1/4,
+    tempoUnit: tempoUnit,
     beatDuration: beatDuration,
+    beatsInMeasure: beatsInMeasure,
+    measureLength: measureLength,
     measureDuration: measureDuration,
   },
   instruments: {
     'drums-bd-hh1': {
+      category: 'loop',
       type: 'loop',
-      display: {
-        type: 'circular',
-        length: 8,
-        renderers: [{
-          type: 'measures',
-          zone: 0,
-          color: '#ffffff',
-          opacity: 0.2,
-          // active: false, // define if can trigger actions or not, if true should define an id
-        }, {
-          type: 'cursor',
-          color: '#000000',
-          opacity: 1,
-          fadeOpacity: 0.02,
-          numZones: 1,
-          active: false, // define if can trigger actions or not, if true should define an id
-        }],
-      },
-      loop: [{
+      length: 23,
+      loops: [[{
         length: 4,
-        audioBuffer: 'drums-bd-hh1-break.mp3',
-        startOffset: beatDuration + 4 * measureDuration,
+        buffer: 'drums-bd-hh1-break.mp3',
+        offset: beatDuration + 4 * measureDuration,
         continue: true,
       }, {
         repeat: 21,
         length: 4,
-        audioBuffer: 'drums-bd-hh1.mp3',
-        startOffset: beatDuration,
+        buffer: 'drums-bd-hh1.mp3',
+        offset: beatDuration,
       }, {
         length: 4,
-        audioBuffer: 'drums-bd-hh1-break.mp3',
-        startOffset: beatDuration,
-      }],
-      preview: 1,
+        buffer: 'drums-bd-hh1-break.mp3',
+        offset: beatDuration,
+      }]],
     },
     'drums-hh2-hh3': {
+      category: 'loop',
       type: 'loop',
-      display: {
-        type: 'circular',
-        length: 8,
-        renderers: [{
-          type: 'measures',
-          zone: 0,
-          color: '#ffffff',
-          opacity: 0.2,
-          // active: false, // define if can trigger actions or not, if true should define an id
-        }, {
-          type: 'cursor',
-          color: '#000000',
-          opacity: 1,
-          fadeOpacity: 0.02,
-          numZones: 1,
-          active: false, // define if can trigger actions or not, if true should define an id
-        }],
-      },
-      loop: {
+      length: 8,
+      loops: [{
         length: 4,
-        audioBuffer: 'drums-hh2-hh3.mp3',
-        startOffset: beatDuration,
-      },
+        buffer: 'drums-hh2-hh3.mp3',
+        offset: beatDuration,
+      }],
     },
     'drums-sd-bell': {
+      category: 'loop',
       type: 'loop',
-      display: {
-        type: 'circular',
-        length: 8,
-        renderers: [{
-          type: 'measures',
-          zone: 0,
-          color: '#ffffff',
-          opacity: 0.2,
-          // active: false, // define if can trigger actions or not, if true should define an id
-        }, {
-          type: 'cursor',
-          color: '#000000',
-          opacity: 1,
-          fadeOpacity: 0.02,
-          numZones: 1,
-          active: false, // define if can trigger actions or not, if true should define an id
-        }],
-      },
-      loop: {
+      length: 8,
+      loops: [{
         length: 4,
-        audioBuffer: 'drums-sd-bell.mp3',
-        startOffset: beatDuration,
-      },
+        buffer: 'drums-sd-bell.mp3',
+        offset: beatDuration,
+      }],
     },
     'drums-clap': {
+      category: 'loop',
       type: 'loop',
-      display: {
-        type: 'circular',
-        length: 8,
-        renderers: [{
-          type: 'measures',
-          zone: 0,
-          color: '#ffffff',
-          opacity: 0.2,
-          // active: false, // define if can trigger actions or not, if true should define an id
-        }, {
-          type: 'cursor',
-          color: '#000000',
-          opacity: 1,
-          fadeOpacity: 0.02,
-          numZones: 1,
-          active: false, // define if can trigger actions or not, if true should define an id
-        }],
-      },
-      loop: {
+      length: 8,
+      loops: [{
         length: 4,
-        audioBuffer: 'drums-clap.mp3',
-        startOffset: beatDuration,
-      },
+        buffer: 'drums-clap.mp3',
+        offset: beatDuration,
+      }],
     },
     'drums-sh1-sh2': {
+      category: 'loop',
       type: 'loop',
-      display: {
-        type: 'circular',
-        length: 8,
-        renderers: [{
-          type: 'measures',
-          zone: 0,
-          color: '#ffffff',
-          opacity: 0.2,
-          // active: false, // define if can trigger actions or not, if true should define an id
-        }, {
-          type: 'cursor',
-          color: '#000000',
-          opacity: 1,
-          fadeOpacity: 0.02,
-          numZones: 1,
-          active: false, // define if can trigger actions or not, if true should define an id
-        }],
-      },
-      loop: {
+      length: 8,
+      loops: [{
         length: 1,
-        audioBuffer: 'drums-sh1-sh2.mp3',
-        startOffset: beatDuration,
-      },
+        buffer: 'drums-sh1-sh2.mp3',
+        offset: beatDuration,
+      }],
     },
   },
 };

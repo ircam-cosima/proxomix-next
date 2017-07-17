@@ -2,6 +2,7 @@ import { audio } from 'soundworks/client';
 
 const audioContext = audio.audioContext;
 const maxIdleTime = 6;
+const fadeInTime = 1;
 
 class Mixer {
   constructor(metricScheduler) {
@@ -40,8 +41,8 @@ class Mixer {
     const now = audioContext.currentTime;
 
     const currentPosition = this.metricScheduler.currentPosition;
-    const startFade = currentPosition + 2;
-    const endFade = currentPosition + 6;
+    const startFade = currentPosition;
+    const endFade = currentPosition + fadeInTime;
     const startFadeTime = this.metricScheduler.getAudioTimeAtMetricPosition(startFade);
     const endFadeTime = this.metricScheduler.getAudioTimeAtMetricPosition(endFade);
 
