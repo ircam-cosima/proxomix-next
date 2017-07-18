@@ -40,17 +40,17 @@ class Segment {
 }
 
 class SegmentTrack {
-  constructor(segmentLayers, transitionTime = 0.05) {
+  constructor(segmentedLoops, transitionTime = 0.05) {
     this.src = audioContext.createBufferSource();
 
-    this.segmentLayers = segmentLayers;
+    this.segmentedLoops = segmentedLoops;
     this.transitionTime = transitionTime;
 
     this.minCutoffFreq = 5;
     this.maxCutoffFreq = audioContext.sampleRate / 2;
     this.logCutoffRatio = Math.log(this.maxCutoffFreq / this.minCutoffFreq);
 
-    this.layerIndex = 0;
+    this.loopIndex = 0;
     this.discontinue = true;
 
     const cutoff = audioContext.createBiquadFilter();
@@ -142,7 +142,7 @@ class SegmentTrack {
   }
 
   startMeasure(audioTime, measureIndex, canContinue = false) {
-    const segments = this.segmentLayers[this.layerIndex];
+    const segments = this.segmentedLoops[this.loopIndex];
     const measureIndexInPattern = measureIndex % segments.length;
     const segment = segments[measureIndexInPattern];
 
@@ -158,8 +158,8 @@ class SegmentTrack {
     this.cutoff.frequency.value = cutoffFreq;
   }
 
-  setLayer(value) {
-    this.layerIndex = value;
+  setLoop(value) {
+    this.loopIndex = value;
     this.discontinue = true;
   }
 
@@ -173,7 +173,7 @@ class SegmentTrack {
 }
 
 class LoopPlayer extends audio.TimeEngine {
-  constructor(metricScheduler, measureLength = 1, tempo = 120, tempoUnit = 1 / 4, transitionTime = 0.05, measureCallback = function(measureCount) {}) {
+  constructor(metricScheduler, measureLength = 1, tempo = 120, tempoUnit = 1 / 4, transitionTime = 0.05) {
     super();
 
     this.metricScheduler = metricScheduler;
@@ -181,7 +181,6 @@ class LoopPlayer extends audio.TimeEngine {
     this.tempo = tempo;
     this.tempoUnit = tempoUnit;
     this.transitionTime = transitionTime;
-    this.measureCallback = measureCallback;
 
     this.measureDuration = 60 / (tempo * tempoUnit);
     this.measureIndex = undefined;
@@ -222,8 +221,6 @@ class LoopPlayer extends audio.TimeEngine {
     for (let segmentTrack of this.segmentTracks)
       segmentTrack.startMeasure(audioTime, this.measureIndex, canContinue);
 
-    this.measureCallback(audioTime, this.measureIndex);
-
     this.nextMeasureTime = audioTime + this.measureDuration;
 
     return metricPosition + this.measureLength;
@@ -234,22 +231,23 @@ class LoopPlayer extends audio.TimeEngine {
     this.segmentTracks.delete(segmentTrack);
   }
 
-  addLoopTrack(loopLayers) {
-    const segmentLayers = [];
+  addLoopTrack(loopDescriptions) {
+    const segmentedLoops = [];
 
-    for (let layer of loopLayers) {
+    for (let descr of loopDescriptions) {
       const segments = [];
 
-      if (Array.isArray(layer))
-        layer.forEach((seg) => appendSegments(segments, seg, this.measureDuration));
+      if (Array.isArray(descr))
+        descr.forEach((seg) => appendSegments(segments, seg, this.measureDuration));
       else
-        appendSegments(segments, layer, this.measureDuration);
+        appendSegments(segments, descr, this.measureDuration);
 
-      segmentLayers.push(segments);
+      segmentedLoops.push(segments);
     }
 
-    const segmentTrack = new SegmentTrack(segmentLayers, this.transitionTime);
+    const segmentTrack = new SegmentTrack(segmentedLoops, this.transitionTime);
     this.segmentTracks.add(segmentTrack);
+
 
     return segmentTrack;
   }

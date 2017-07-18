@@ -118,9 +118,9 @@ const setup = {
     'dist-loop': {
       category: 'loop',
       type: 'loop',
-      length: 8,
+      length: 6,
       loops: [{
-        length: 8,
+        length: 6,
         buffer: 'dist-loop.wav',
         offset: 0,
       }],
