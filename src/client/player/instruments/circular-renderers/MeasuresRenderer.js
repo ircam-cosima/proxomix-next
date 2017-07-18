@@ -14,6 +14,14 @@ class MeasuresRenderer extends BaseArcRenderer {
       color: '#ffffff',
       opacity: 0.5,
     }, options);
+
+    this._color = this.options.color;
+    this._opacity = this.options.opacity;
+  }
+
+  setColor(value) {
+    this._color = value;
+    this._render();
   }
 
   init() {
@@ -45,8 +53,8 @@ class MeasuresRenderer extends BaseArcRenderer {
     _ctx.save();
     _ctx.translate(width / 2, height / 2);
 
-    _ctx.strokeStyle = this.options.color;
-    _ctx.globalAlpha = this.options.opacity;
+    _ctx.strokeStyle = this._color;
+    _ctx.globalAlpha = this._opacity;
     _ctx.lineWidth = this.arcWidth - 2;
 
     this.segments.forEach((angles) => {

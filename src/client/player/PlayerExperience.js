@@ -148,7 +148,7 @@ class PlayerExperience extends soundworks.Experience {
       // add instrement to mixer
       this.mixer.createChannel(index, instrument);
 
-      const debug = true;
+      const debug = false;
 
       // init view if local instrument
       if (index === this.playerId) {
