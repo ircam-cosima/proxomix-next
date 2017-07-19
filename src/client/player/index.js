@@ -1,8 +1,8 @@
 import * as soundworks from 'soundworks/client';
 import PlayerExperience from './PlayerExperience.js';
+import LoopInstrument from '../shared/instruments/LoopInstrument';
+import StepSeqInstrument from '../shared/instruments/StepSeqInstrument';
 import serviceViews from '../shared/serviceViews';
-
-import LoopInstrument from './instruments/LoopInstrument';
 
 const init = () => {
   const config = Object.assign({ appContainer: '#container' }, window.soundworksConfig);

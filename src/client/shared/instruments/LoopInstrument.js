@@ -1,4 +1,4 @@
-import instrumentFactory from '../instrumentFactory';
+import instrumentFactory from './instrumentFactory';
 import Instrument from './Instrument';
 import { client, CanvasView } from 'soundworks/client';
 import CursorRenderer from './circular-renderers/CursorRenderer';

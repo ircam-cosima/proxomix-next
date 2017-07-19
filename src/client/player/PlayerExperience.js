@@ -1,9 +1,9 @@
 import * as soundworks from 'soundworks/client';
 import { decibelToLinear } from 'soundworks/utils/math';
 import Beacon from '../../shared/services/client/Beacon';
+import LoopPlayer from '../shared/instruments/LoopPlayer';
+import instrumentFactory from '../shared/instruments/instrumentFactory';
 import Mixer from './Mixer';
-import LoopPlayer from './LoopPlayer';
-import instrumentFactory from './instrumentFactory';
 import setup from '../../shared/setup';
 
 const client = soundworks.client;
