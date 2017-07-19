@@ -16,7 +16,6 @@ const setup = {
   },
   instruments: {
     'harmo-arpeggiator': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -34,7 +33,6 @@ const setup = {
       }],
     },
     'pad-loop': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -52,7 +50,6 @@ const setup = {
       }],
     },
     'melo-1': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -62,7 +59,6 @@ const setup = {
       }],
     },
     'melo-2': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -72,7 +68,6 @@ const setup = {
       }],
     },
     'bass-chord': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -82,7 +77,6 @@ const setup = {
       }],
     },
     'bass-pad': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -92,7 +86,6 @@ const setup = {
       }],
     },
     'bass-arpeggiator': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -102,7 +95,6 @@ const setup = {
       }],
     },
     'fx-glitch': {
-      category: 'loop',
       type: 'loop',
       length: 8,
       loops: [{
@@ -120,13 +112,30 @@ const setup = {
       }],
     },
     'dist-loop': {
-      category: 'loop',
       type: 'loop',
       length: 6,
       loops: [{
         length: 6,
         buffer: 'dist-loop.wav',
         offset: 0,
+      }],
+    },
+    'perc-metallic': {
+      type: 'stepseq',
+      numSteps: 16,
+      inner: [{
+        buffer: 'perc-metallic-bd.wav',
+        gain: 0,
+      }, {
+        buffer: 'perc-metallic-sd.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'perc-metallic-ch1.wav',
+        gain: 0,
+      }, {
+        buffer: 'perc-metallic-ch2.wav',
+        gain: 0,
       }],
     },
   },

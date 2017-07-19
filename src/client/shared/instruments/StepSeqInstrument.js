@@ -290,8 +290,8 @@ class StepSeqInstrument extends Instrument {
     this.view = null;
 
     this.numSteps = options.numSteps;
-    this.numInnerLayers = this.options.inner.length;
-    this.numOuterLayers = this.options.outer.length;
+    this.numInnerSounds = this.options.inner.length;
+    this.numOuterSounds = this.options.outer.length;
 
     this.innerSequence = new Array(this.numSteps);
     this.outerSequence = new Array(this.numSteps);
@@ -395,11 +395,11 @@ class StepSeqInstrument extends Instrument {
 
   onViewButton(index, outer) {
     if(!outer) {
-      const state = (this.innerSequence[index] + 1) % (this.numInnerLayers + 1);
+      const state = (this.innerSequence[index] + 1) % (this.numInnerSounds + 1);
       this.innerSequence[index] = state;
       this.environment.sendControl('inner-sequence', this.innerSequence);
     } else {
-      const state = (this.outerSequence[index] + 1) % (this.numOuterLayers + 1);
+      const state = (this.outerSequence[index] + 1) % (this.numOuterSounds + 1);
       this.outerSequence[index] = state;
       this.environment.sendControl('outer-sequence', this.outerSequence);
     }
