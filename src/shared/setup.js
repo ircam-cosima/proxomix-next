@@ -122,7 +122,8 @@ const setup = {
     },
     'perc-classic-1': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 1,
+      steps: 16,
       inner: [{
         buffer: 'perc-classic-bd.wav',
         gain: 0,
@@ -134,7 +135,8 @@ const setup = {
     },
     'perc-metallic-1': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 1,
+      steps: 16,
       inner: [{
         buffer: 'perc-metallic-bd.wav',
         gain: 0,
@@ -146,7 +148,8 @@ const setup = {
     },
     'perc-classic-2': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 1,
+      steps: 16,
       inner: [{
         buffer: 'perc-classic-rimshot.wav',
         gain: 0,
@@ -158,7 +161,8 @@ const setup = {
     },
     'perc-metallic-2': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 1,
+      steps: 16,
       inner: [{
         buffer: 'perc-metallic-rimshot.wav',
         gain: 0,
@@ -170,7 +174,8 @@ const setup = {
     },
     'perc-classic-3': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 1,
+      steps: 16,
       inner: [{
         buffer: 'perc-classic-ch1.wav',
         gain: 0,
@@ -188,7 +193,8 @@ const setup = {
     },
     'perc-metallic-3': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 1,
+      steps: 16,
       inner: [{
         buffer: 'perc-metallic-ch1.wav',
         gain: 0,
@@ -206,7 +212,8 @@ const setup = {
     },
     'chord-sequencer-1': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 2,
+      steps: 16,
       inner: [{
         buffer: 'chord-sequencer-1-1.wav',
         gain: 0,
@@ -221,7 +228,8 @@ const setup = {
     },
     'chord-sequencer-2': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 2,
+      steps: 16,
       inner: [{
         buffer: 'chord-sequencer-2-1.wav',
         gain: 0,
@@ -236,7 +244,8 @@ const setup = {
     },
     'chord-sequencer-3': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 2,
+      steps: 16,
       inner: [{
         buffer: 'chord-sequencer-3-1.wav',
         gain: 0,
