@@ -120,6 +120,24 @@ const setup = {
         offset: 0,
       }],
     },
+    'perc-metallic': {
+      type: 'stepseq',
+      numSteps: 16,
+      inner: [{
+        buffer: 'perc-metallic-bd.wav',
+        gain: 0,
+      }, {
+        buffer: 'perc-metallic-sd.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'perc-metallic-ch1.wav',
+        gain: 0,
+      }, {
+        buffer: 'perc-metallic-ch2.wav',
+        gain: 0,
+      }],
+    },
   },
 };
 
