@@ -38,3 +38,17 @@
     }
   }
 }
+
+.chooser-button {
+  font-size: 1.2rem;
+  overflow: hidden;
+  position: absolute;
+  box-sizing: border-box;
+  padding: 5px;
+  background-color: #232323;
+
+  p {
+    transform: rotate(90deg);
+    pointer-events: none;
+  }
+}

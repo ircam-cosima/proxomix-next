@@ -122,7 +122,8 @@ const setup = {
     },
     'perc-metallic': {
       type: 'stepseq',
-      numSteps: 16,
+      length: 1,
+      steps: 16,
       inner: [{
         buffer: 'perc-metallic-bd.wav',
         gain: 0,

@@ -289,7 +289,9 @@ class StepSeqInstrument extends Instrument {
 
     this.view = null;
 
-    this.numSteps = options.numSteps;
+    const numSteps = options.steps;
+    this.numSteps = numSteps;
+    this.stepsPerMeasure = numSteps / options.length;
     this.numInnerSounds = this.options.inner.length;
     this.numOuterSounds = this.options.outer.length;
 
@@ -367,7 +369,7 @@ class StepSeqInstrument extends Instrument {
 
   startSound() {
     const environment = this.environment;
-    environment.metricScheduler.addMetronome(this.onMetroBeat, this.numSteps, this.numSteps, 1, 0, true);
+    environment.metricScheduler.addMetronome(this.onMetroBeat, this.numSteps, this.stepsPerMeasure, 1, 0, true);
   }
 
   stopSound() {
