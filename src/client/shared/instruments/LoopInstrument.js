@@ -13,7 +13,7 @@ const template = `
       <p class="greek"><%= symbol %></p>
       <% } %>
 
-      <div class="btn-container">
+      <div class="loop-button-container">
       </div>
     </div>
     <div class="section-bottom"></div>
@@ -130,7 +130,7 @@ class LoopView extends CanvasView {
 
   makeButtons(numButtons) {
     if (numButtons > 1) {
-      const buttonContainer = this.$el.querySelector('.btn-container');
+      const buttonContainer = this.$el.querySelector('.loop-button-container');
       const space = 100 / (numButtons + 1);
       let pos = space;
 
@@ -143,7 +143,7 @@ class LoopView extends CanvasView {
         dot.style.backgroundColor = highColor;
         button.appendChild(dot);
 
-        button.classList.add('btn-circle');
+        button.classList.add('loop-button');
         button.style.left = `${pos}%`;
         button.addEventListener('touchstart', this.onTouchStart(i));
 

@@ -144,7 +144,7 @@ class PlayerExperience extends soundworks.Experience {
 
   hideChooser() {
     if(this.chooserVisible)
-      this.chooserView.hide();
+      this.chooserView.remove();
   }
 
   updateChooser() {
@@ -184,9 +184,6 @@ class PlayerExperience extends soundworks.Experience {
     this.mixer = new Mixer(this.metricScheduler);
     this.mixer.connect(audioContext.destination);
 
-    // create instruments
-    const playerInstrumentId = instrumentList[this.playerId];
-
     // loop track test
     for (let index = 0; index < numInstruments; index++) {
       const instrument = this.getInstrument(index);
@@ -206,6 +203,12 @@ class PlayerExperience extends soundworks.Experience {
         this.mixer.setGain(index, 0.5);
       }
     }
+
+    const instrument = this.instruments[this.playerId];
+    const container = instrument.view.$el;
+    const button = document.createElement("div");
+    button.classList.add('home-button');
+    container.appendChild(button);
 
     this.receive('instrument:control', this.onInstrumentControl);
 

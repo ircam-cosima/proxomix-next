@@ -120,22 +120,128 @@ const setup = {
         offset: 0,
       }],
     },
-    'perc-metallic': {
+    'perc-classic-1': {
       type: 'stepseq',
       length: 1,
       steps: 16,
       inner: [{
         buffer: 'perc-metallic-bd.wav',
         gain: 0,
-      }, {
+      }],
+      outer: [{
         buffer: 'perc-metallic-sd.wav',
         gain: 0,
       }],
+    },
+    'perc-classic-2': {
+      type: 'stepseq',
+      length: 1,
+      steps: 16,
+      inner: [{
+        buffer: 'perc-classic-rimshot.wav',
+        gain: 0,
+      }],
       outer: [{
+        buffer: 'perc-classic-clap.wav',
+        gain: 0,
+      }],
+    },
+    'perc-metallic-2': {
+      type: 'stepseq',
+      length: 1,
+      steps: 16,
+      inner: [{
+        buffer: 'perc-metallic-rimshot.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'perc-metallic-clap.wav',
+        gain: 0,
+      }],
+    },
+    'perc-classic-3': {
+      type: 'stepseq',
+      length: 1,
+      steps: 16,
+      inner: [{
+        buffer: 'perc-classic-ch1.wav',
+        gain: 0,
+      }, {
+        buffer: 'perc-classic-ch2.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'perc-classic-oh.wav',
+        gain: 0,
+      }, {
+        buffer: 'perc-classic-ride.wav',
+        gain: 0,
+      }],
+    },
+    'perc-metallic-3': {
+      type: 'stepseq',
+      length: 1,
+      steps: 16,
+      inner: [{
         buffer: 'perc-metallic-ch1.wav',
         gain: 0,
       }, {
         buffer: 'perc-metallic-ch2.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'perc-metallic-ch3.wav',
+        gain: 0,
+      }, {
+        buffer: 'perc-metallic-ride.wav',
+        gain: 0,
+      }],
+    },
+    'chord-sequencer-1': {
+      type: 'stepseq',
+      length: 2,
+      steps: 16,
+      inner: [{
+        buffer: 'chord-sequencer-1-1.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'chord-sequencer-1-2.wav',
+        gain: 0,
+      }, {
+        buffer: 'chord-sequencer-1-3.wav',
+        gain: 0,
+      }],
+    },
+    'chord-sequencer-2': {
+      type: 'stepseq',
+      length: 2,
+      steps: 16,
+      inner: [{
+        buffer: 'chord-sequencer-2-1.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'chord-sequencer-2-2.wav',
+        gain: 0,
+      }, {
+        buffer: 'chord-sequencer-2-3.wav',
+        gain: 0,
+      }],
+    },
+    'chord-sequencer-3': {
+      type: 'stepseq',
+      length: 2,
+      steps: 16,
+      inner: [{
+        buffer: 'chord-sequencer-3-1.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'chord-sequencer-3-2.wav',
+        gain: 0,
+      }, {
+        buffer: 'chord-sequencer-3-3.wav',
         gain: 0,
       }],
     },
