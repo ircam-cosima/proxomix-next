@@ -2,19 +2,19 @@ import * as soundworks from 'soundworks/client';
 
 const template = `
   <div class="chooser-container">
-  <% labels.forEach(function(label, index) { %>
-    <div class="chooser-button" data-index="<%= index %>"><p><%= label %></p></div>
+  <% icons.forEach(function(icon, index) { %>
+    <div class="chooser-button" data-index="<%= index %>" style="background-image: url(<%= icon %>)"></div>
   <% }); %>
   </div>
 `;
 
 class ChooserView extends soundworks.View {
-  constructor(labels, buttonCallback) {
+  constructor(icons, buttonCallback) {
     super(template, {
-      labels: labels, 
+      icons: icons,
     }, {}, {});
 
-    this.labels = labels;
+    this.icons = icons;
     this.buttonCallback = buttonCallback;
 
     this.onTouchStart = this.onTouchStart.bind(this);
@@ -33,15 +33,15 @@ class ChooserView extends soundworks.View {
   onResize(...args) {
     super.onResize(...args);
 
-    const numLabels = this.labels.length;
+    const numicons = this.icons.length;
     const numCols = 4;
-    const numRows = Math.ceil(numLabels / numCols);
+    const numRows = Math.ceil(numicons / numCols);
     const margin = 10;
     const width = (this.viewportWidth - margin) / numCols - margin;
     const height = (this.viewportHeight - margin) / numRows - margin;
     const $buttons = Array.from(this.$el.querySelectorAll('.chooser-button'));
 
-    for (let i = 0; i < numLabels; i++) {
+    for (let i = 0; i < numicons; i++) {
       const row = Math.floor(i / numCols);
       const col = i % numCols;
       const top = margin + row * (height + margin);

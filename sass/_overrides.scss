@@ -53,6 +53,9 @@
   box-sizing: border-box;
   padding: 5px;
   background-color: #232323;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: contain;
 
   p {
     transform: rotate(90deg);

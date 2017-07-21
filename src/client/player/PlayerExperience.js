@@ -24,7 +24,7 @@ class PlayerExperience extends soundworks.Experience {
     this.metricScheduler = this.require('metric-scheduler');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
-      assetsDomain: assetsDomain + 'sounds/',
+      assetsDomain: assetsDomain,
       files: rawMixSetup
     });
 
@@ -74,6 +74,8 @@ class PlayerExperience extends soundworks.Experience {
 
     this.view = new soundworks.View('');
 
+    console.log(rawMixSetup);
+
     this.show().then(() => {
       this.send('player:request');
       this.receive('player:acknowledge', this.onPlayerAcknwoledge);
@@ -92,7 +94,13 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   showChooser() {
-    const chooserView = new ChooserView(Object.keys(rawMixSetup.instruments), this.onChooserButton);
+    const iconList = [];
+
+    for (let prop in rawMixSetup.instruments) {
+      iconList.push(rawMixSetup.instruments[prop].icon);
+    }
+
+    const chooserView = new ChooserView(iconList, this.onChooserButton);
     chooserView.render();
     chooserView.show();
     chooserView.appendTo(this.view.$el);
@@ -156,7 +164,7 @@ class PlayerExperience extends soundworks.Experience {
   removeHomeButton(instrument) {
     const container = instrument.view.$el;
     const button = container.querySelector('.home-button');
-    container.removeChild(button);    
+    container.removeChild(button);
   }
 
   startInstruments() {
