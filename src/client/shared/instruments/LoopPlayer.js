@@ -224,21 +224,16 @@ class LoopPlayer extends audio.TimeEngine {
     return metricPosition + this.measureLength;
   }
 
-  removeLoopTrack(segmentTrack) {
-    segmentTrack.stopSegment();
-    this.segmentTracks.delete(segmentTrack);
-  }
-
-  addLoopTrack(loopDescriptions) {
+  addLoopTrack(loops) {
     const segmentedLoops = [];
 
-    for (let descr of loopDescriptions) {
+    for (let loop of loops) {
       const segments = [];
 
-      if (Array.isArray(descr))
-        descr.forEach((seg) => appendSegments(segments, seg, this.measureDuration));
+      if (Array.isArray(loop))
+        loop.forEach((seg) => appendSegments(segments, seg, this.measureDuration));
       else
-        appendSegments(segments, descr, this.measureDuration);
+        appendSegments(segments, loop, this.measureDuration);
 
       segmentedLoops.push(segments);
     }
@@ -246,8 +241,12 @@ class LoopPlayer extends audio.TimeEngine {
     const segmentTrack = new SegmentTrack(segmentedLoops, this.transitionTime);
     this.segmentTracks.add(segmentTrack);
 
-
     return segmentTrack;
+  }
+
+  removeLoopTrack(segmentTrack) {
+    segmentTrack.stopSegment();
+    this.segmentTracks.delete(segmentTrack);
   }
 
   destroy() {

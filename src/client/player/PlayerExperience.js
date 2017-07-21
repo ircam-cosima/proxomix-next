@@ -49,22 +49,20 @@ class PlayerExperience extends soundworks.Experience {
     this.availablePlayers = null;
 
     this.instruments = [];
-    this.localInstrumentEnv = null;
-    this.remoteInstrumentEnv = null;
+    this.instrumentEnv = null;
 
-    this.onBeaconRanging = this.onBeaconRanging.bind(this);
-    this.onInstrumentControl = this.onInstrumentControl.bind(this);
     this.onPlayerAcknwoledge = this.onPlayerAcknwoledge.bind(this);
+    this.onHomeButton = this.onHomeButton.bind(this);
     this.onChooserButton = this.onChooserButton.bind(this);
-    this.enterApplication = this.enterApplication.bind(this);
 
     this.onPlayerAvailable = this.onPlayerAvailable.bind(this);
-    
     this.onPlayerEnter = this.onPlayerEnter.bind(this);
     this.onPlayerExit = this.onPlayerExit.bind(this);
 
-    this.chooserView = new ChooserView(Object.keys(rawMixSetup.instruments), this.onChooserButton);
-    this.chooserVisible = false;
+    this.onBeaconRanging = this.onBeaconRanging.bind(this);
+    this.onInstrumentControl = this.onInstrumentControl.bind(this);
+
+    this.chooserView = null;
   }
 
   start() {
@@ -82,27 +80,48 @@ class PlayerExperience extends soundworks.Experience {
     });
   }
 
-  getInstrument(index) {
-    let instrument = this.instruments[index];
+  onHomeButton() {
+    this.exitApplication();
+    this.showChooser();
+  }
 
-    if (!instrument) {
-      const mixSetup = this.audioBufferManager.data;
-      const instrumentList = Object.keys(mixSetup.instruments);
-      const instrumentId = instrumentList[index];
-      const instrumentDescr = mixSetup.instruments[instrumentId];
-      const instrumentEnv = (index === this.playerId) ? this.localInstrumentEnv : this.remoteInstrumentEnv;
-      this.instruments[index] = instrument = instrumentFactory.createInstrument(instrumentEnv, instrumentDescr.type, instrumentDescr);
+  onChooserButton(playerId) {
+    this.playerId = playerId;
+    this.hideChooser();
+    this.enterApplication();
+  }
+
+  showChooser() {
+    const chooserView = new ChooserView(Object.keys(rawMixSetup.instruments), this.onChooserButton);
+    chooserView.render();
+    chooserView.show();
+    chooserView.appendTo(this.view.$el);
+    this.chooserView = chooserView;
+  }
+
+  hideChooser() {
+    if (this.chooserView) {
+      this.chooserView.remove();
+      this.chooserView = null;
     }
+  }
 
-    return instrument;
+  updateChooser() {
+    if (this.chooserView) {
+
+    }
   }
 
   onPlayerAvailable(playerId) {
     this.availablePlayers.add(playerId);
+    this.updateChooser();
   }
 
   onPlayerEnter(playerId) {
+    // player unavailable
     this.availablePlayers.delete(playerId);
+    this.updateChooser();
+
     this.activePlayers.add(playerId);
   }
 
@@ -126,37 +145,66 @@ class PlayerExperience extends soundworks.Experience {
     this.showChooser();
   }
 
-  onChooserButton(playerId) {
-    this.playerId = playerId;
-    this.hideChooser();
-    this.enterApplication();
+  addHomeButton(instrument) {
+    const container = instrument.view.$el;
+    const button = document.createElement("div");
+    button.classList.add('home-button');
+    button.addEventListener('touchstart', this.onHomeButton);
+    container.appendChild(button);
   }
 
-  showChooser() {
-    this.chooserVisible = true;
-
-    const chooserView = this.chooserView;
-    chooserView.render();
-    chooserView.show();
-    chooserView.appendTo(this.view.$el);
-    this.chooserView = chooserView;
+  removeHomeButton(instrument) {
+    const container = instrument.view.$el;
+    const button = container.querySelector('.home-button');
+    container.removeChild(button);    
   }
 
-  hideChooser() {
-    if(this.chooserVisible)
-      this.chooserView.remove();
+  startInstruments() {
+    const mixSetup = this.audioBufferManager.data;
+    const instrumentList = Object.keys(mixSetup.instruments);
+    const numInstruments = instrumentList.length;
+
+    for (let i = 0; i < numInstruments; i++) {
+      let instrument = this.instruments[i];
+
+      // create instrument if necessary
+      if (!instrument) {
+        const instrumentId = instrumentList[i];
+        const instrumentDescr = mixSetup.instruments[instrumentId];
+        instrument = instrumentFactory.createInstrument(this.instrumentEnv, instrumentDescr.type, instrumentDescr);
+        this.instruments[i] = instrument;
+      }
+
+      // add instrement to mixer
+      this.mixer.createChannel(i, instrument);
+
+      const debug = false;
+
+      if (i === this.playerId) {
+        instrument.visible = true;
+        instrument.active = true;
+        this.mixer.setGain(i, 1);
+        this.addHomeButton(instrument);
+      } else if (debug) {
+        instrument.active = true;
+        this.mixer.setGain(i, 0.5);
+      }
+    }
+
+    this.receive('instrument:control', this.onInstrumentControl);
   }
 
-  updateChooser() {
-    if(this.chooserVisible) {
-
+  stopInstruments() {
+    for (let instrument of this.instruments) {
+      if (instrument) {
+        instrument.visible = false;
+        instrument.active = false;
+      }
     }
   }
 
   enterApplication() {
     const mixSetup = this.audioBufferManager.data;
-    const instrumentList = Object.keys(mixSetup.instruments);
-    const numInstruments = instrumentList.length;
     const commonConfig = mixSetup.common;
 
     this.applicationRunning = true;
@@ -164,18 +212,10 @@ class PlayerExperience extends soundworks.Experience {
 
     const loopPlayer = new LoopPlayer(this.metricScheduler, commonConfig.measureLength, commonConfig.tempo, commonConfig.tempoUnit, 0.05);
 
-    this.localInstrumentEnv = {
+    this.instrumentEnv = {
       screenContainer: this.view.$el,
       motionInput: this.motionInput,
       sendControl: this.sendIntrumentControl(this.playerId),
-      metricScheduler: this.metricScheduler,
-      loopPlayer: loopPlayer,
-    };
-
-    this.remoteInstrumentEnv = {
-      screenContainer: null,
-      motionInput: null,
-      sendControl: null,
       metricScheduler: this.metricScheduler,
       loopPlayer: loopPlayer,
     };
@@ -184,33 +224,7 @@ class PlayerExperience extends soundworks.Experience {
     this.mixer = new Mixer(this.metricScheduler);
     this.mixer.connect(audioContext.destination);
 
-    // loop track test
-    for (let index = 0; index < numInstruments; index++) {
-      const instrument = this.getInstrument(index);
-
-      // add instrement to mixer
-      this.mixer.createChannel(index, instrument);
-
-      const debug = false;
-
-      // init view if local instrument
-      if (index === this.playerId) {
-        instrument.visible = true;
-        instrument.active = true;
-        this.mixer.setGain(index, 1);
-      } else if (debug) {
-        instrument.active = true;
-        this.mixer.setGain(index, 0.5);
-      }
-    }
-
-    const instrument = this.instruments[this.playerId];
-    const container = instrument.view.$el;
-    const button = document.createElement("div");
-    button.classList.add('home-button');
-    container.appendChild(button);
-
-    this.receive('instrument:control', this.onInstrumentControl);
+    this.startInstruments();
 
     this.beacon.minor = this.playerId;
     this.beacon.addListener(this.onBeaconRanging);
@@ -219,7 +233,10 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   exitApplication() {
-    this.applicationRunning = false;
+    if (this.applicationRunning) {
+      this.applicationRunning = false;
+      this.stopInstruments();
+    }
   }
 
   sendIntrumentControl(playerId) {

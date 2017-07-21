@@ -16,8 +16,6 @@ class SegmentRenderer extends BaseArcRenderer {
       start: 0,
       length: displayLength,
     }, options);
-
-    console.log(this.options);
   }
 
   init() {

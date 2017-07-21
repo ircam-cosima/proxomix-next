@@ -2,7 +2,7 @@ import { audio } from 'soundworks/client';
 
 const audioContext = audio.audioContext;
 const maxIdleTime = 6;
-const fadeInTime = 1;
+const fadeInTime = 0.2;
 
 class Mixer {
   constructor(metricScheduler) {

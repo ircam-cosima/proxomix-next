@@ -26,10 +26,7 @@ class ChooserView extends soundworks.View {
 
   onTouchStart(e) {
     const $el = e.target;
-
-    console.log(e, $el);
     const index = parseInt($el.dataset.index, 10);
-
     this.buttonCallback(index);
   }
 

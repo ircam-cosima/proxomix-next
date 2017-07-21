@@ -258,7 +258,7 @@ class Beacon extends Service {
               .fail(console.error)
               .done();
           } else {
-            console.log('Advertising not supported');
+            new Error('Advertising is not supported');
           }
         })
         .fail(function(e) { console.error(e); })
