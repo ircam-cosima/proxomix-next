@@ -2,7 +2,7 @@ import instrumentFactory from './instrumentFactory';
 import Instrument from './Instrument';
 import { CanvasView } from 'soundworks/client';
 import CursorRenderer from './circular-renderers/CursorRenderer';
-import MeasuresRenderer from './circular-renderers/MeasuresRenderer';
+import MeasureRenderer from './circular-renderers/MeasureRenderer';
 
 const template = `
   <canvas class="background"></canvas>
@@ -57,11 +57,11 @@ class LoopView extends CanvasView {
 
     const measureOptions = {
       zone: 0,
-      color: highColor,
+      color: lowColor,
       opacity: 1,
     };
 
-    const measureRenderer = new MeasuresRenderer(this.length, measureOptions);
+    const measureRenderer = new MeasureRenderer(this.length, measureOptions);
     this.addRenderer(measureRenderer);
     this.measureRenderer = measureRenderer;
 
@@ -92,9 +92,10 @@ class LoopView extends CanvasView {
 
     if (selectedButton !== this.activeButton) {
       this.activeButton = selectedButton;
-      this.measureRenderer.setColor(highColor);
       this.setActivatedButton(selectedButton);
     }
+
+    this.measureRenderer.setColor(highColor);
   }
 
   selectButton(index) {
