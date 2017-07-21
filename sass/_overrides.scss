@@ -7,18 +7,25 @@
   font-weight: bold;
 }
 
-.run {
-  background: url(../img/run-background.png) 50% 30% no-repeat;
+.home-button {
+  position: absolute;
+  background: url(../images/home.png) 50% 50% no-repeat;
+  background-size: cover;
+  width: 30px;
+  height: 30px;
+  top: 10px;
+  right: 10px;
+  z-index: 999;
 }
 
-.btn-container {
+.loop-button-container {
   position: absolute;
   background-color: #000000;
   width: 100%;
   height: 60px;
   bottom: 0;
   left: 0;
-  .btn-circle {
+  .loop-button {
     width: 32px;
     height: 32px;
     position: absolute;
@@ -36,5 +43,19 @@
       top: 3px;
       left: 3px;
     }
+  }
+}
+
+.chooser-button {
+  font-size: 1.2rem;
+  overflow: hidden;
+  position: absolute;
+  box-sizing: border-box;
+  padding: 5px;
+  background-color: #232323;
+
+  p {
+    transform: rotate(90deg);
+    pointer-events: none;
   }
 }

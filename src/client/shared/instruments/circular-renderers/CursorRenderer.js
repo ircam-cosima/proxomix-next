@@ -1,17 +1,15 @@
 import { audio } from 'soundworks/client';
 import BaseArcRenderer from './BaseArcRenderer';
 
-const audioContext = audio.audioContext;
-
 /**
  * Circular cursor.
  *
  * @param {Number} displayLength - Nbr of measures represented in the whole circle.
- * @param {MetricScehduler} metricScheduler
+ * @param {function} getCurrentMetricPosition
  * @param {}
  */
 class CursorRenderer extends BaseArcRenderer {
-  constructor(displayLength, options, metricScheduler) {
+  constructor(displayLength, options, getCurrentMetricPosition) {
     super(0, displayLength);
 
 
@@ -22,7 +20,7 @@ class CursorRenderer extends BaseArcRenderer {
       numZones: 1,
     }, options);
 
-    this.metricScheduler = metricScheduler;
+    this.getCurrentMetricPosition = getCurrentMetricPosition;
   }
 
   render(ctx) {
@@ -33,8 +31,7 @@ class CursorRenderer extends BaseArcRenderer {
     const radius = this.radius;
     const halfWidth = this.arcWidth / 2;
     const numZones = this.options.numZones;
-    const currentTime = audioContext.currentTime;
-    const currentPosition = this.metricScheduler.getMetricPositionAtAudioTime(currentTime);
+    const currentPosition = this.getCurrentMetricPosition();
     const angle = this.getAngleFromPosition(currentPosition);
     const padding = 0;
 

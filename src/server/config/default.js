@@ -1,6 +1,8 @@
 import path from 'path';
-const cwd = process.cwd();
+import mixSetup from '../../shared/setup.js';
 
+const cwd = process.cwd();
+const numInstruments = mixSetup.instruments.length;
 
 // Configuration of the application.
 // Other entries can be added (as long as their name doesn't conflict with
@@ -49,7 +51,7 @@ export default {
     maxClientsPerPosition: 1,
     // maximum number of positions (may limit or be limited by the number of
     // labels and/or coordinates)
-    capacity: Infinity,
+    capacity: numInstruments,
   },
 
   // socket.io configuration

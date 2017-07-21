@@ -6,7 +6,7 @@ import BaseArcRenderer from './BaseArcRenderer';
  * @param {Number} displayLength - Nbr of measures represented in the whole circle.
  * @param {Object} options
  */
-class MeasuresRenderer extends BaseArcRenderer {
+class MeasureRenderer extends BaseArcRenderer {
   constructor(displayLength, options) {
     super(options.zone, displayLength);
 
@@ -20,8 +20,10 @@ class MeasuresRenderer extends BaseArcRenderer {
   }
 
   setColor(value) {
-    this._color = value;
-    this._render();
+    if(value !== this._color) {
+      this._color = value;
+      this._render();
+    }
   }
 
   init() {
@@ -72,4 +74,4 @@ class MeasuresRenderer extends BaseArcRenderer {
   }
 }
 
-export default MeasuresRenderer;
+export default MeasureRenderer;

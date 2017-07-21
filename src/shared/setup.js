@@ -21,15 +21,15 @@ const setup = {
       loops: [{
         length: 8,
         buffer: 'harmo-arpeggiator-1.wav',
-        offset: 0,
+        offset: beatDuration,
       }, {
         length: 8,
         buffer: 'harmo-arpeggiator-2.wav',
-        offset: 0,
+        offset: beatDuration,
       }, {
         length: 8,
         buffer: 'harmo-arpeggiator-3.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'pad-loop': {
@@ -38,15 +38,15 @@ const setup = {
       loops: [{
         length: 8,
         buffer: 'pad-loop-1.wav',
-        offset: 0,
+        offset: beatDuration,
       }, {
         length: 8,
         buffer: 'pad-loop-2.wav',
-        offset: 0,
+        offset: beatDuration,
       }, {
         length: 8,
         buffer: 'pad-loop-3.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'melo-1': {
@@ -55,7 +55,7 @@ const setup = {
       loops: [{
         length: 8,
         buffer: 'melo-1.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'melo-2': {
@@ -64,7 +64,7 @@ const setup = {
       loops: [{
         length: 32,
         buffer: 'melo-2.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'bass-chord': {
@@ -73,7 +73,7 @@ const setup = {
       loops: [{
         length: 8,
         buffer: 'bass-chord.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'bass-pad': {
@@ -82,7 +82,7 @@ const setup = {
       loops: [{
         length: 8,
         buffer: 'bass-pad.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'bass-arpeggiator': {
@@ -91,7 +91,7 @@ const setup = {
       loops: [{
         length: 8,
         buffer: 'bass-arpeggiator.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'fx-glitch': {
@@ -100,15 +100,15 @@ const setup = {
       loops: [{
         length: 8,
         buffer: 'fx-glitch-1.wav',
-        offset: 0,
+        offset: beatDuration,
       }, {
         length: 8,
         buffer: 'fx-glitch-2.wav',
-        offset: 0,
+        offset: beatDuration,
       }, {
         length: 8,
         buffer: 'fx-glitch-3.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'dist-loop': {
@@ -117,23 +117,10 @@ const setup = {
       loops: [{
         length: 6,
         buffer: 'dist-loop.wav',
-        offset: 0,
+        offset: beatDuration,
       }],
     },
     'perc-classic-1': {
-      type: 'stepseq',
-      length: 1,
-      steps: 16,
-      inner: [{
-        buffer: 'perc-classic-bd.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'perc-classic-sd.wav',
-        gain: 0,
-      }],
-    },
-    'perc-metallic-1': {
       type: 'stepseq',
       length: 1,
       steps: 16,

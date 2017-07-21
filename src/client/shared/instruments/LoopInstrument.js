@@ -1,8 +1,8 @@
 import instrumentFactory from './instrumentFactory';
 import Instrument from './Instrument';
-import { client, CanvasView } from 'soundworks/client';
+import { CanvasView } from 'soundworks/client';
 import CursorRenderer from './circular-renderers/CursorRenderer';
-import MeasuresRenderer from './circular-renderers/MeasuresRenderer';
+import MeasureRenderer from './circular-renderers/MeasureRenderer';
 
 const template = `
   <canvas class="background"></canvas>
@@ -13,7 +13,7 @@ const template = `
       <p class="greek"><%= symbol %></p>
       <% } %>
 
-      <div class="btn-container">
+      <div class="loop-button-container">
       </div>
     </div>
     <div class="section-bottom"></div>
@@ -24,7 +24,7 @@ const lowColor = '#3F3F3F';
 const highColor = '#7F7F7F';
 
 class LoopView extends CanvasView {
-  constructor(metricScheduler, buttonCallback, options) {
+  constructor(instrument, options) {
     super(template, {
       symbol: options.symbol,
     }, {}, {
@@ -36,8 +36,7 @@ class LoopView extends CanvasView {
       }
     });
 
-    this.metricScheduler = metricScheduler;
-    this.buttonCallback = buttonCallback;
+    this.instrument = instrument;
 
     this.cursorRenderer = null;
     this.measureRenderer = null;
@@ -51,16 +50,18 @@ class LoopView extends CanvasView {
     this.onMeasureStart = this.onMeasureStart.bind(this);
   }
 
+  // CanvasView.init
   init() {
+    super.init();
     this.setPreRender((ctx, dt, w, h) => ctx.clearRect(0, 0, w, h));
 
     const measureOptions = {
       zone: 0,
-      color: highColor,
+      color: lowColor,
       opacity: 1,
     };
 
-    const measureRenderer = new MeasuresRenderer(this.length, measureOptions);
+    const measureRenderer = new MeasureRenderer(this.length, measureOptions);
     this.addRenderer(measureRenderer);
     this.measureRenderer = measureRenderer;
 
@@ -73,17 +74,17 @@ class LoopView extends CanvasView {
       active: false, // define if can trigger actions or not, if true should define an id
     };
 
-    const cursorRenderer = new CursorRenderer(this.length, cursorOptions, this.metricScheduler);
+    const cursorRenderer = new CursorRenderer(this.length, cursorOptions, () => this.instrument.currentPosition);
     this.addRenderer(cursorRenderer);
     this.cursorRenderer = cursorRenderer;
 
-    this.metricScheduler.addMetronome(this.onMeasureStart, 1, 1, 1, 0, true);
+    this.instrument.addMetronome(this.onMeasureStart, 1, 1);
     this.makeButtons(this.options.loops.length);
   }
 
   remove() {
     super.remove();
-    this.metricScheduler.removeMetronome(this.onMeasureStart);
+    this.instrument.removeMetronome(this.onMeasureStart);
   }
 
   activateSelectedButton() {
@@ -91,9 +92,10 @@ class LoopView extends CanvasView {
 
     if (selectedButton !== this.activeButton) {
       this.activeButton = selectedButton;
-      this.measureRenderer.setColor(highColor);
       this.setActivatedButton(selectedButton);
     }
+
+    this.measureRenderer.setColor(highColor);
   }
 
   selectButton(index) {
@@ -101,7 +103,7 @@ class LoopView extends CanvasView {
       this.selectedButton = index;
       this.setSelectedButton(index);
       this.measureRenderer.setColor(lowColor);
-      this.buttonCallback(index);
+      this.instrument.setLoopIndex(index);
     }
   }
 
@@ -130,7 +132,7 @@ class LoopView extends CanvasView {
 
   makeButtons(numButtons) {
     if (numButtons > 1) {
-      const buttonContainer = this.$el.querySelector('.btn-container');
+      const buttonContainer = this.$el.querySelector('.loop-button-container');
       const space = 100 / (numButtons + 1);
       let pos = space;
 
@@ -143,7 +145,7 @@ class LoopView extends CanvasView {
         dot.style.backgroundColor = highColor;
         button.appendChild(dot);
 
-        button.classList.add('btn-circle');
+        button.classList.add('loop-button');
         button.style.left = `${pos}%`;
         button.addEventListener('touchstart', this.onTouchStart(i));
 
@@ -178,11 +180,11 @@ class LoopInstrument extends Instrument {
   constructor(environment, options) {
     super(environment, options);
 
-    this.view = null;
-    this.loopTrack = environment.loopPlayer.addLoopTrack(options.loops);
+    this.options = options;
+    this.loopTrack = null;
+    this.output = null;
 
     this.onAccelerationIncludingGravity = this.onAccelerationIncludingGravity.bind(this);
-    this.onViewButton = this.onViewButton.bind(this);
   }
 
   setControl(name, value) {
@@ -198,53 +200,57 @@ class LoopInstrument extends Instrument {
   }
 
   showScreen() {
-    const environment = this.environment;
-    const view = new LoopView(environment.metricScheduler, this.onViewButton, this.options);
-    view.render();
-    view.show();
-    view.appendTo(environment.screenContainer);
-    this.view = view;
+    const view = new LoopView(this, this.options);
 
-    // const touchSurface = new soundworks.TouchSurface(view.$el, { normalizeCoordinates: false });
-    // touchSurface.addListener(...);
-    // this.touchSurface = touchSurface;
+    this.lastCutoff = -Infinity;
+
+    this.addView(view);
+    this.addMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
   }
 
   hideScreen() {
-    const environment = this.environment;
-
-    this.view.remove();
-
-    // this.touchSurface.removeListener(...);
-    // this.touchSurface.destroy();
-  }
-
-  startSensors() {
-    this.lastCutoff = -Infinity;
-
-    const environment = this.environment;
-    environment.motionInput.addListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
-  }
-
-  stopSensors() {
-    const environment = this.environment;
-    environment.motionInput.removeListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
+    this.removeView();
+    this.removeMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
   }
 
   startSound() {
-    this.loopTrack.active = true;
+    const loopTrack = this.addLoopTrack(this.options.loops);
+    const output = this.output;
+
+    if (output)
+      loopTrack.connect(output);
+
+    this.loopTrack = loopTrack;
   }
 
   stopSound() {
-    this.loopTrack.active = false;
+    const loopTrack = this.loopTrack;
+
+    if(loopTrack)
+      this.removeLoopTrack(loopTrack);
   }
 
   connect(output) {
-    this.loopTrack.connect(output);
+    this.output = output;
+
+    const loopTrack = this.loopTrack;
+    if (loopTrack)
+      loopTrack.connect(output);
   }
 
   disconnect(output) {
-    this.loopTrack.disconnect(output);
+    if (output === this.output) {
+      this.output = null;
+
+      const loopTrack = this.loopTrack;
+      if (loopTrack)
+        loopTrack.disconnect(output);
+    }
+  }
+
+  setLoopIndex(index) {
+    this.loopTrack.setLoop(index);
+    this.environment.sendControl('select', index);
   }
 
   onAccelerationIncludingGravity(data) {
@@ -262,11 +268,6 @@ class LoopInstrument extends Instrument {
       this.loopTrack.setCutoff(cutoff);
       this.environment.sendControl('cutoff', cutoff);
     }
-  }
-
-  onViewButton(index) {
-    this.loopTrack.setLoop(index);
-    this.environment.sendControl('select', index);
   }
 }
 
