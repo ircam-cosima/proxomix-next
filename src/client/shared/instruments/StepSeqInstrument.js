@@ -4,12 +4,14 @@ import instrumentFactory from './instrumentFactory';
 import Instrument from './Instrument';
 
 const template = `
-  <canvas class="background flex-middle"></canvas>
-  <div class="foreground">
-    <div class="section-top flex-middle"></div>
+  <canvas class="background"></canvas>
+  <div class="foreground fit-container">
+    <div class="section-top"></div>
     <div class="section-center flex-middle">
+      <div class="inst-icon" style="background-image: url(<%= icon %>)">
+      </div>
     </div>
-    <div class="section-bottom flex-middle"></div>
+    <div class="section-bottom"></div>
   </div>
 `;
 
@@ -167,7 +169,7 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
 class StepSeqView extends soundworks.CanvasView {
   constructor(instrument, options) {
     super(template, {
-      symbol: options.symbol,
+      icon: options.icon,
     }, {}, {
       preservePixelRatio: true,
       ratios: {

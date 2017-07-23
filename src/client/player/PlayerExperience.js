@@ -74,8 +74,6 @@ class PlayerExperience extends soundworks.Experience {
 
     this.view = new soundworks.View('');
 
-    console.log(rawMixSetup);
-
     this.show().then(() => {
       this.send('player:request');
       this.receive('player:acknowledge', this.onPlayerAcknwoledge);
