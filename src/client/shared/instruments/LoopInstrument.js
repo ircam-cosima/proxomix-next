@@ -9,7 +9,10 @@ const template = `
   <div class="foreground fit-container">
     <div class="section-top"></div>
     <div class="section-center flex-middle">
-      <div class="loop-button-container"></div>
+      <div class="inst-icon" style="background-image: url(<%= icon %>)">
+      </div>
+      <div class="loop-button-container">
+      </div>
     </div>
     <div class="section-bottom"></div>
   </div>
@@ -21,7 +24,7 @@ const highColor = '#7F7F7F';
 class LoopView extends CanvasView {
   constructor(instrument, options) {
     super(template, {
-      symbol: options.symbol,
+      icon: options.icon,
     }, {}, {
       preservePixelRatio: true,
       ratios: {

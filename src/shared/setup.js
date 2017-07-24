@@ -135,6 +135,20 @@ const setup = {
       length: 1,
       steps: 16,
       inner: [{
+        buffer: 'sounds/perc-classic-bd.wav',
+        gain: 0,
+      }],
+      outer: [{
+        buffer: 'sounds/perc-classic-sd.wav',
+        gain: 0,
+      }],
+    },
+    'perc-metallic-1': {
+      icon: 'icons/perc-metallic-1.svg',
+      type: 'stepseq',
+      length: 1,
+      steps: 16,
+      inner: [{
         buffer: 'sounds/perc-metallic-bd.wav',
         gain: 0,
       }],
