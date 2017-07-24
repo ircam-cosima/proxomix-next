@@ -206,8 +206,16 @@ class Beacon extends Service {
     this._startAdvertising();
   }
 
+  stopAdvertising() {
+    this._stopAdvertising();
+  }
+
   startRanging() {
     this._startRanging();
+  }
+
+  stopRanging() {
+    this._stopRanging();
   }
 
   /**

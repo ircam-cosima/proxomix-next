@@ -1,59 +1,77 @@
 import * as soundworks from 'soundworks/client';
 
 const template = `
-  <div class="chooser-container">
-  <% icons.forEach(function(icon, index) { %>
-    <div class="chooser-button" data-index="<%= index %>" style="background-image: url(<%= icon %>)"></div>
-  <% }); %>
-  </div>
+  <div class="chooser-container"></div>
 `;
 
 class ChooserView extends soundworks.View {
-  constructor(icons, buttonCallback) {
+  constructor(icons, activeButtons, buttonCallback) {
     super(template, {
       icons: icons,
     }, {}, {});
 
     this.icons = icons;
+    this.activeButtons = activeButtons;
     this.buttonCallback = buttonCallback;
 
-    this.onTouchStart = this.onTouchStart.bind(this);
-
-    this.installEvents({
-      'touchstart .chooser-button': this.onTouchStart
-    });
+    this.buttons = [];
   }
 
-  onTouchStart(e) {
-    const $el = e.target;
-    const index = parseInt($el.dataset.index, 10);
-    this.buttonCallback(index);
+  update() {
+    const activeButtons = this.activeButtons;
+
+    for(let i = 0; i < this.buttons.length; i++) {
+      const button = this.buttons[i];
+
+      if(activeButtons.has(i))
+        button.style.opacity = 1;
+      else
+        button.style.opacity = 0.33;
+    }
   }
 
   onResize(...args) {
     super.onResize(...args);
 
-    const numicons = this.icons.length;
+    const numIcons = this.icons.length;
     const numCols = 4;
-    const numRows = Math.ceil(numicons / numCols);
+    const numRows = Math.ceil(numIcons / numCols);
     const margin = 10;
     const width = (this.viewportWidth - margin) / numCols - margin;
     const height = (this.viewportHeight - margin) / numRows - margin;
-    const $buttons = Array.from(this.$el.querySelectorAll('.chooser-button'));
+    const container = this.$el.querySelector('.chooser-container');
+    const icons = this.icons;
 
-    for (let i = 0; i < numicons; i++) {
+    this.buttons = [];
+
+    for (let i = 0; i < numIcons; i++) {
       const row = Math.floor(i / numCols);
       const col = i % numCols;
       const top = margin + row * (height + margin);
       const left = margin + col * (width + margin);
-      const $button = $buttons[i];
+      const button = document.createElement("div");
 
-      $button.style.width = `${width}px`;
-      $button.style.height = `${height}px`;
-      $button.style.top = `${top}px`;
-      $button.style.left = `${left}px`;
+      button.classList.add('chooser-button');
+      button.style.backgroundImage = `url('${icons[i]}')`;
+      button.style.width = `${width}px`;
+      button.style.height = `${height}px`;
+      button.style.top = `${top}px`;
+      button.style.left = `${left}px`;
+      button.addEventListener('touchstart', this.onTouchStart(i));
+
+      container.appendChild(button);
+      this.buttons.push(button);
     }
+
+    this.update();
   }
+
+  onTouchStart(index) {
+    return () => {
+      this.buttonCallback(index);
+    };
+  }
+
 }
 
 export default ChooserView;

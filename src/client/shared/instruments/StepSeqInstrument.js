@@ -419,11 +419,11 @@ class StepSeqInstrument extends Instrument {
         break;
 
       case 'inner-sequence':
-        this.setInnerSequence(values);
+        this.setInnerSequence(value);
         break;
 
       case 'outer-sequence':
-        this.setOuterSequence(values);
+        this.setOuterSequence(value);
         break;
     }
   }

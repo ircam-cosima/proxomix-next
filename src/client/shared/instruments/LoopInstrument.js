@@ -130,7 +130,7 @@ class LoopView extends CanvasView {
 
   makeButtons(numButtons) {
     if (numButtons > 1) {
-      const buttonContainer = this.$el.querySelector('.loop-button-container');
+      const container = this.$el.querySelector('.loop-button-container');
       const space = 100 / (numButtons + 1);
       let pos = space;
 
@@ -147,7 +147,7 @@ class LoopView extends CanvasView {
         button.style.left = `${pos}%`;
         button.addEventListener('touchstart', this.onTouchStart(i));
 
-        buttonContainer.appendChild(button);
+        container.appendChild(button);
         this.buttons.push(button);
 
         pos += space;
