@@ -12,7 +12,7 @@ const audio = soundworks.audio;
 const audioContext = soundworks.audioContext;
 const audioScheduler = soundworks.audio.getScheduler();
 
-audioScheduler.lookahead = 0.1;
+audioScheduler.lookahead = 0.15;
 audioScheduler.period = 0.05;
 
 class PlayerExperience extends soundworks.Experience {
