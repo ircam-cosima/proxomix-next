@@ -24,7 +24,7 @@ const highColor = '#7F7F7F';
 class LoopView extends CanvasView {
   constructor(instrument, options) {
     super(template, {
-      icon: options.icon,
+      icon: options.icon.instrument,
     }, {}, {
       preservePixelRatio: true,
       ratios: {
