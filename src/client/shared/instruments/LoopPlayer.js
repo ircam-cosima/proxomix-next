@@ -29,11 +29,10 @@ function appendSegments(segments, loopSegment, measureDuration) {
 }
 
 class Segment {
-  constructor(buffer, offsetInBuffer = 0, durationInBuffer = Infinity, offsetInMeasure = 0, gain = 0, cont = false) {
+  constructor(buffer, offsetInBuffer = 0, durationInBuffer = Infinity, gain = 0, cont = false) {
     this.buffer = buffer;
     this.offsetInBuffer = offsetInBuffer;
     this.durationInBuffer = durationInBuffer; // 0: continue untill next segment starts
-    this.offsetInMeasure = offsetInMeasure;
     this.gain = gain;
     this.continue = cont; // segment continues previous segment
   }
@@ -72,12 +71,11 @@ class SegmentTrack {
 
     if (audioTime < this.endTime - transitionTime) {
       const src = this.src;
-      const endTime = Math.min(audioTime + transitionTime, this.endTime);
+      const endTime = Math.min(audioTime, this.endTime);
 
       if (transitionTime > 0) {
         const env = this.env;
-        // env.gain.cancelScheduledValues(audioTime);
-        env.gain.setValueAtTime(1, audioTime);
+        env.gain.setValueAtTime(1, audioTime - transitionTime);
         env.gain.linearRampToValueAtTime(0, endTime);
       }
 
@@ -85,10 +83,10 @@ class SegmentTrack {
     }
 
     if (offsetInBuffer < bufferDuration) {
-      let delay = 0;
+      let advance = transitionTime;
 
       if (offsetInBuffer < transitionTime) {
-        delay = transitionTime - offsetInBuffer;
+        advance += offsetInBuffer - transitionTime;
         transitionTime = offsetInBuffer;
       }
 
@@ -101,23 +99,18 @@ class SegmentTrack {
 
       if (transitionTime > 0) {
         env.gain.value = 0;
-        env.gain.setValueAtTime(0, audioTime + delay);
-        env.gain.linearRampToValueAtTime(1, audioTime + delay + transitionTime);
+        env.gain.setValueAtTime(0, audioTime - advance);
+        env.gain.linearRampToValueAtTime(1, audioTime - advance + transitionTime);
       }
 
       const src = audioContext.createBufferSource();
       src.connect(env);
       src.buffer = buffer;
-      src.start(audioTime + delay, offsetInBuffer - transitionTime);
-
-      audioTime += transitionTime;
-
-      const endInBuffer = offsetInBuffer + durationInBuffer;
-      let endTime = audioTime + durationInBuffer;
+      src.start(audioTime - advance, offsetInBuffer - transitionTime);
 
       this.src = src;
       this.env = env;
-      this.endTime = endTime;
+      this.endTime = audioTime + durationInBuffer;
     }
   }
 
@@ -145,8 +138,7 @@ class SegmentTrack {
     const segment = segments[measureIndexInPattern];
 
     if (segment && (this.discontinue || !(segment.continue && canContinue))) {
-      const delay = segment.offsetInMeasure || 0;
-      this.startSegment(audioTime + delay, segment);
+      this.startSegment(audioTime, segment);
       this.discontinue = false;
     }
   }
