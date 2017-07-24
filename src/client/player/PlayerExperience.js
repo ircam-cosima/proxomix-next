@@ -43,7 +43,9 @@ class PlayerExperience extends soundworks.Experience {
     beaconConfig.emulate = (!!window.cordova) ? null : { numPeers: 0 };
     this.beacon = this.require('beacon', beaconConfig);
 
-    this.playerId = null;
+    this.chooserView = null;
+
+    this.playerId = undefined;
     this.intrumentConfig = null;
     this.activePlayers = null;
     this.availablePlayers = null;
@@ -54,15 +56,14 @@ class PlayerExperience extends soundworks.Experience {
     this.onPlayerAcknwoledge = this.onPlayerAcknwoledge.bind(this);
     this.onHomeButton = this.onHomeButton.bind(this);
     this.onChooserButton = this.onChooserButton.bind(this);
+    this.onPlayerConfirm = this.onPlayerConfirm.bind(this);
 
-    this.onPlayerAvailable = this.onPlayerAvailable.bind(this);
     this.onPlayerEnter = this.onPlayerEnter.bind(this);
     this.onPlayerExit = this.onPlayerExit.bind(this);
+    this.onPlayerAvailable = this.onPlayerAvailable.bind(this);
 
     this.onBeaconRanging = this.onBeaconRanging.bind(this);
     this.onInstrumentControl = this.onInstrumentControl.bind(this);
-
-    this.chooserView = null;
   }
 
   start() {
@@ -74,33 +75,40 @@ class PlayerExperience extends soundworks.Experience {
 
     this.view = new soundworks.View('');
 
-    console.log(rawMixSetup);
-
     this.show().then(() => {
       this.send('player:request');
       this.receive('player:acknowledge', this.onPlayerAcknwoledge);
+      this.receive('player:confirm', this.onPlayerConfirm);
+      this.receive('instrument:control', this.onInstrumentControl);
+
+      this.receive('player:enter', this.onPlayerEnter);
+      this.receive('player:exit', this.onPlayerExit);
+      this.receive('player:available', this.onPlayerAvailable);
     });
-  }
 
-  onHomeButton() {
-    this.exitApplication();
-    this.showChooser();
-  }
+    const mixSetup = this.audioBufferManager.data;
+    const commonConfig = mixSetup.common;
+    const loopPlayer = new LoopPlayer(this.metricScheduler, commonConfig.measureLength, commonConfig.tempo, commonConfig.tempoUnit, 0.05);
 
-  onChooserButton(playerId) {
-    this.playerId = playerId;
-    this.hideChooser();
-    this.enterApplication();
+    this.instrumentEnv = {
+      screenContainer: this.view.$el,
+      motionInput: this.motionInput,
+      sendControl: this.sendIntrumentControl(this.playerId),
+      metricScheduler: this.metricScheduler,
+      loopPlayer: loopPlayer,
+    };
+
+    this.mixer = new Mixer(this.metricScheduler);
+    this.mixer.connect(audioContext.destination);
   }
 
   showChooser() {
     const iconList = [];
 
-    for (let prop in rawMixSetup.instruments) {
+    for (let prop in rawMixSetup.instruments)
       iconList.push(rawMixSetup.instruments[prop].icon);
-    }
 
-    const chooserView = new ChooserView(iconList, this.onChooserButton);
+    const chooserView = new ChooserView(iconList, this.availablePlayers, this.onChooserButton);
     chooserView.render();
     chooserView.show();
     chooserView.appendTo(this.view.$el);
@@ -116,41 +124,26 @@ class PlayerExperience extends soundworks.Experience {
 
   updateChooser() {
     if (this.chooserView) {
-
+      this.chooserView.update(this.availablePlayers);
     }
   }
 
-  onPlayerAvailable(playerId) {
-    this.availablePlayers.add(playerId);
-    this.updateChooser();
+  onChooserButton(playerId) {
+    if(this.availablePlayers.has(playerId))
+      this.send('player:id', playerId);
   }
 
-  onPlayerEnter(playerId) {
-    // player unavailable
-    this.availablePlayers.delete(playerId);
-    this.updateChooser();
-
-    this.activePlayers.add(playerId);
-  }
-
-  onPlayerExit(playerId) {
-    this.activePlayers.delete(playerId);
-
-    this.mixer.setAutomation(playerId, 0, 0.05);
-
-    const instrument = this.instruments[playerId];
-    if (instrument)
-      instrument.active = false;
-  }
-
-  onPlayerAcknwoledge(availabalePlayers, activePlayers) {
-    this.receive('player:available', this.onPlayerAvailable);
-    this.receive('player:enter', this.onPlayerEnter);
-
-    this.availabalePlayers = new Set(availabalePlayers);
+  onPlayerAcknwoledge(availablePlayers, activePlayers) {
+    this.availablePlayers = new Set(availablePlayers);
     this.activePlayers = new Set(activePlayers);
-
     this.showChooser();
+  }
+
+  onPlayerConfirm(playerId) {
+    if (playerId !== undefined) {
+      this.hideChooser();
+      this.enterApplication(playerId);
+    }
   }
 
   addHomeButton(instrument) {
@@ -165,6 +158,11 @@ class PlayerExperience extends soundworks.Experience {
     const container = instrument.view.$el;
     const button = container.querySelector('.home-button');
     container.removeChild(button);
+  }
+
+  onHomeButton() {
+    this.exitApplication();
+    this.showChooser();
   }
 
   startInstruments() {
@@ -198,8 +196,6 @@ class PlayerExperience extends soundworks.Experience {
         this.mixer.setGain(i, 0.5);
       }
     }
-
-    this.receive('instrument:control', this.onInstrumentControl);
   }
 
   stopInstruments() {
@@ -211,44 +207,67 @@ class PlayerExperience extends soundworks.Experience {
     }
   }
 
-  enterApplication() {
-    const mixSetup = this.audioBufferManager.data;
-    const commonConfig = mixSetup.common;
-
-    this.applicationRunning = true;
-    this.send('player:enter', this.playerId);
-
-    const loopPlayer = new LoopPlayer(this.metricScheduler, commonConfig.measureLength, commonConfig.tempo, commonConfig.tempoUnit, 0.05);
-
-    this.instrumentEnv = {
-      screenContainer: this.view.$el,
-      motionInput: this.motionInput,
-      sendControl: this.sendIntrumentControl(this.playerId),
-      metricScheduler: this.metricScheduler,
-      loopPlayer: loopPlayer,
-    };
-
-    // init audio
-    this.mixer = new Mixer(this.metricScheduler);
-    this.mixer.connect(audioContext.destination);
-
-    this.startInstruments();
-
+  startBeaconing() {
     this.beacon.minor = this.playerId;
     this.beacon.addListener(this.onBeaconRanging);
     this.beacon.startAdvertising();
     this.beacon.startRanging();
   }
 
+  stopBeaconing() {
+    this.beacon.minor = 999;
+    this.beacon.removeListener(this.onBeaconRanging);
+    this.beacon.stopAdvertising();
+    this.beacon.stopRanging();
+  }
+
+  enterApplication(playerId) {
+    this.playerId = playerId;
+    this.availablePlayers.delete(playerId);
+    this.activePlayers.add(playerId);
+    this.send('player:enter', this.playerId);
+
+    this.startInstruments();
+    this.startBeaconing();
+  }
+
   exitApplication() {
-    if (this.applicationRunning) {
-      this.applicationRunning = false;
+    const playerId = this.playerId;
+
+    if (playerId !== undefined) {
+      this.stopBeaconing();
       this.stopInstruments();
+
+      this.activePlayers.delete(playerId);
+      this.send('player:exit', playerId);
+
+      this.playerId = undefined;
     }
   }
 
   sendIntrumentControl(playerId) {
     return (name, value) => this.send('instrument:control', playerId, name, value);
+  }
+
+  onPlayerEnter(playerId) {
+    this.availablePlayers.delete(playerId);
+    this.activePlayers.add(playerId);
+    this.updateChooser();
+  }
+
+  onPlayerExit(playerId) {
+    this.activePlayers.delete(playerId);
+
+    this.mixer.setAutomation(playerId, 0, 0.05);
+
+    const instrument = this.instruments[playerId];
+    if (instrument)
+      instrument.active = false;
+  }
+
+  onPlayerAvailable(playerId) {
+    this.availablePlayers.add(playerId);
+    this.updateChooser();
   }
 
   onInstrumentControl(playerId, name, value) {

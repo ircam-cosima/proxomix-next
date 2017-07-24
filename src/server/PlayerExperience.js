@@ -6,7 +6,7 @@ const numInstruments = instrumentList.length;
 const tempo = setup.common.tempo;
 const tempoUnit = setup.common.tempoUnit;
 
-const playerOutTime = 10;
+const playerOutTime = 1;
 
 // server-side 'player' experience.
 export default class PlayerExperience extends Experience {
@@ -28,18 +28,53 @@ export default class PlayerExperience extends Experience {
 
   start() {}
 
+  /*
+   * request --> acknowledge(availablePlayers, activePlayers)
+   * id(playerId) --> confirm(playerId) ->> enter(playerId)
+   * exit(plaeryerId) ->> exit(playerId)
+   * 
+   */
+
   enter(client) {
     super.enter(client);
 
     this.receive(client, 'player:request', this._onPlayerRequest(client));
-    this.receive(client, 'player:enter', this._onPlayerEnter(client));
+    this.receive(client, 'player:id', this._onPlayerId(client));
     this.receive(client, 'player:exit', this._onPlayerExit(client));
     this.receive(client, 'instrument:control', this._onInstrumentControl(client));
   }
 
   exit(client) {
     super.exit(client);
-    this._onPlayerExit(client, client.activities[this.id].playerId);
+
+    const playerId = client.activities[this.id].playerId;
+    if (playerId !== undefined) {
+      client.activities[this.id].playerId = undefined;
+      this.exitPlayer(client, playerId);
+    }
+  }
+
+  enterPlayer(client, playerId) {
+    this.availablePlayers.delete(playerId);
+    this.activePlayers.add(playerId);
+
+    client.activities[this.id].playerId = playerId;
+
+    this.send(client, 'player:confirm', playerId);
+    this.broadcast('player', client, 'player:enter', playerId);
+  }
+
+  exitPlayer(client, playerId) {
+    if (this.activePlayers.has(playerId)) {
+      this.activePlayers.delete(playerId);
+
+      this.broadcast('player', client, 'player:exit', playerId);
+
+      setTimeout(() => {
+        this.availablePlayers.add(playerId);
+        this.broadcast('player', null, 'player:available', playerId);
+      }, playerOutTime * 1000);
+    }
   }
 
   _onPlayerRequest(client) {
@@ -51,28 +86,15 @@ export default class PlayerExperience extends Experience {
     };
   }
 
-  _onPlayerEnter(client) {
+  _onPlayerId(client) {
     return (playerId) => {
-      this.broadcast('player', client, 'player:enter', playerId);
-
-      this.activePlayers.add(playerId);
-      this.availablePlayers.delete(playerId);
+      if (this.availablePlayers.has(playerId))
+        this.enterPlayer(client, playerId);
     };
   }
 
   _onPlayerExit(client) {
-    return (playerId) => {
-      this.broadcast('player', client, 'player:exit', playerId);
-
-      if (this.activePlayers.has(playerId)) {
-        this.activePlayers.delete(playerId);
-
-        setTimeout(() => {
-          this.availablePlayers.add(playerId);
-          this.broadcast('player', null, 'player:available', playerId);
-        }, playerOutTime * 1000);
-      }
-    };
+    return (playerId) => this.exitPlayer(client, playerId);
   }
 
   _onInstrumentControl(client) {
