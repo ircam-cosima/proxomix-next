@@ -134,147 +134,219 @@ const setup = {
       type: 'stepseq',
       length: 1,
       steps: 16,
-      inner: [{
-        buffer: 'sounds/perc-classic-bd.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/perc-classic-sd.wav',
-        gain: 0,
-      }],
-    },
-    'perc-metallic-1': {
-      icon: 'icons/perc-metallic-1.svg',
-      type: 'stepseq',
-      length: 1,
-      steps: 16,
-      inner: [{
-        buffer: 'sounds/perc-metallic-bd.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/perc-metallic-sd.wav',
-        gain: 0,
-      }],
+      inner: {
+        sounds: [{
+          buffer: 'sounds/perc-classic-bd.wav',
+          gain: 0,
+        }],
+        preset: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        random: 4,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/perc-classic-sd.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+        random: 4,
+      },
     },
     'perc-classic-2': {
       icon: 'icons/perc-classic-2.svg',
       type: 'stepseq',
       length: 1,
       steps: 16,
-      inner: [{
-        buffer: 'sounds/perc-classic-rimshot.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/perc-classic-clap.wav',
-        gain: 0,
-      }],
-    },
-    'perc-metallic-2': {
-      icon: 'icons/perc-metallic-2.svg',
-      type: 'stepseq',
-      length: 1,
-      steps: 16,
-      inner: [{
-        buffer: 'sounds/perc-metallic-rimshot.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/perc-metallic-clap.wav',
-        gain: 0,
-      }],
+      inner: {
+        sounds: [{
+          buffer: 'sounds/perc-classic-rimshot.wav',
+          gain: 0,
+        }],
+        preset: [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        random: 6,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/perc-classic-clap.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        random: 6,
+      },
     },
     'perc-classic-3': {
       icon: 'icons/perc-classic-3.svg',
       type: 'stepseq',
       length: 1,
       steps: 16,
-      inner: [{
-        buffer: 'sounds/perc-classic-ch1.wav',
-        gain: 0,
-      }, {
-        buffer: 'sounds/perc-classic-ch2.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/perc-classic-oh.wav',
-        gain: 0,
-      }, {
-        buffer: 'sounds/perc-classic-ride.wav',
-        gain: 0,
-      }],
+      inner: {
+        sounds: [{
+          buffer: 'sounds/perc-classic-ch1.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/perc-classic-ch2.wav',
+          gain: 0,
+        }],
+        preset: [1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
+        random: 5,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/perc-classic-oh.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/perc-classic-ride.wav',
+          gain: 0,
+        }],
+        preset: [1, 0, 2, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+        random: 5,
+      },
+    },
+    'perc-metallic-1': {
+      icon: 'icons/perc-metallic-1.svg',
+      type: 'stepseq',
+      length: 1,
+      steps: 16,
+      inner: {
+        sounds: [{
+          buffer: 'sounds/perc-metallic-bd.wav',
+          gain: 0,
+        }],
+        preset: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        random: 4,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/perc-metallic-sd.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        random: 4,
+      },
+    },
+    'perc-metallic-2': {
+      icon: 'icons/perc-metallic-2.svg',
+      type: 'stepseq',
+      length: 1,
+      steps: 16,
+      inner: {
+        sounds: [{
+          buffer: 'sounds/perc-metallic-rimshot.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+        random: 6,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/perc-metallic-clap.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        random: 6,
+      },
     },
     'perc-metallic-3': {
       icon: 'icons/perc-metallic-3.svg',
       type: 'stepseq',
       length: 1,
       steps: 16,
-      inner: [{
-        buffer: 'sounds/perc-metallic-ch1.wav',
-        gain: 0,
-      }, {
-        buffer: 'sounds/perc-metallic-ch2.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/perc-metallic-ch3.wav',
-        gain: 0,
-      }, {
-        buffer: 'sounds/perc-metallic-ride.wav',
-        gain: 0,
-      }],
+      inner: {
+        sounds: [{
+          buffer: 'sounds/perc-metallic-ch1.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/perc-metallic-ch2.wav',
+          gain: 0,
+        }],
+        preset: [0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1],
+        random: 5,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/perc-metallic-ch3.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/perc-metallic-ride.wav',
+          gain: 0,
+        }],
+        preset: [2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+        random: 5,
+      },
     },
     'chord-sequencer-1': {
       icon: 'icons/chord-sequencer-1.svg',
       type: 'stepseq',
       length: 2,
       steps: 16,
-      inner: [{
-        buffer: 'sounds/chord-sequencer-1-1.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/chord-sequencer-1-2.wav',
-        gain: 0,
-      }, {
-        buffer: 'sounds/chord-sequencer-1-3.wav',
-        gain: 0,
-      }],
+      inner: {
+        sounds: [{
+          buffer: 'sounds/chord-sequencer-1-1.wav',
+          gain: 0,
+        }],
+        preset: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        random: 3,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/chord-sequencer-1-2.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/chord-sequencer-1-3.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2],
+        random: 2,
+      },
     },
     'chord-sequencer-2': {
       icon: 'icons/chord-sequencer-2.svg',
       type: 'stepseq',
       length: 2,
       steps: 16,
-      inner: [{
-        buffer: 'sounds/chord-sequencer-2-1.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/chord-sequencer-2-2.wav',
-        gain: 0,
-      }, {
-        buffer: 'sounds/chord-sequencer-2-3.wav',
-        gain: 0,
-      }],
+      inner: {
+        sounds: [{
+          buffer: 'sounds/chord-sequencer-2-1.wav',
+          gain: 0,
+        }],
+        preset: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        random: 3,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/chord-sequencer-2-2.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/chord-sequencer-2-3.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        random: 2,
+      },
     },
     'chord-sequencer-3': {
       icon: 'icons/chord-sequencer-3.svg',
       type: 'stepseq',
       length: 2,
       steps: 16,
-      inner: [{
-        buffer: 'sounds/chord-sequencer-3-1.wav',
-        gain: 0,
-      }],
-      outer: [{
-        buffer: 'sounds/chord-sequencer-3-2.wav',
-        gain: 0,
-      }, {
-        buffer: 'sounds/chord-sequencer-3-3.wav',
-        gain: 0,
-      }],
+      inner: {
+        sounds: [{
+          buffer: 'sounds/chord-sequencer-3-1.wav',
+          gain: 0,
+        }],
+        preset: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        random: 3,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/chord-sequencer-3-2.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/chord-sequencer-3-3.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+        random: 2,
+      },
     },
   },
 };

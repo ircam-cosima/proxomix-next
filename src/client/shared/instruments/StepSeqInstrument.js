@@ -10,6 +10,8 @@ const template = `
     <div class="section-center flex-middle">
       <div class="inst-icon" style="background-image: url(<%= icon %>)">
       </div>
+       <div class="loop-button-container">
+      </div>
     </div>
     <div class="section-bottom"></div>
   </div>
@@ -26,6 +28,38 @@ const highlightColor = '#ffffff';
 
 function radToDegrees(radians) {
   return radians * 180 / Math.PI;
+}
+
+function fillQuantile(quantile, numActives, numSounds) {
+  const length = quantile.length;
+  let sum = 0;
+  let idx = numSounds;
+  let k = 0;
+
+  for (let i = 0; i < numSounds; i++) {
+    sum += numActives;
+
+    if (sum > length)
+      sum = length;
+
+    while (k < sum) {
+      quantile[length - 1 - k] = idx;
+      k++;
+    }
+
+    idx--;
+  }
+
+  while (k < length) {
+    quantile[length - 1 - k] = 0;
+    k++;
+  }
+}
+
+function getRandomFromQuantile(quantile) {
+  const length = quantile.length;
+  const i = Math.floor(Math.random() * length);
+  return quantile[i];
 }
 
 function makeAngles(numSegs, radius, gap) {
@@ -49,7 +83,7 @@ function setSequence(sequence, values) {
   const length = Math.min(sequence.length, values.length);
 
   for (let i = 0; i < length; i++)
-    sequence[i] = value[i];
+    sequence[i] = values[i];
 }
 
 class SequenceRenderer extends soundworks.Canvas2dRenderer {
@@ -194,6 +228,7 @@ class StepSeqView extends soundworks.CanvasView {
     this.innerAngles = null;
 
     this.onTouchStart = this.onTouchStart.bind(this);
+    this.onTouchButton = this.onTouchButton.bind(this);
   }
 
   init() {
@@ -238,6 +273,8 @@ class StepSeqView extends soundworks.CanvasView {
     this.stepRenderer = stepRenderer;
 
     instrument.addViewListener('touchstart', this.onTouchStart);
+
+    this.makeButtons(3);
   }
 
   remove() {
@@ -245,6 +282,50 @@ class StepSeqView extends soundworks.CanvasView {
 
     const instrument = this.instrument;
     instrument.removeViewListener('touchstart', this.onTouchStart);
+    instrument.removeViewListener('touchstart', this.onTouchButton);
+  }
+
+  makeButtons(numButtons) {
+    const buttonContainer = this.$el.querySelector('.loop-button-container');
+    const space = 100 / (numButtons + 1);
+    let pos = space;
+
+    this.buttons = [];
+
+    for (let i = 0; i < numButtons; i++) {
+      const button = document.createElement("div");
+
+      button.classList.add('loop-button');
+      button.style.left = `${pos}%`;
+      button.style.backgroundImage = "url('icons/button-stepseq-" + `${i+1}` + ".svg')";
+      button.addEventListener('touchstart', this.onTouchButton(i));
+
+      buttonContainer.appendChild(button);
+      this.buttons.push(button);
+
+      pos += space;
+    }
+  }
+
+  onTouchButton(index) {
+    return () => {
+      switch (index) {
+        case 0:
+          this.instrument.clear();
+          break;
+
+        case 1:
+          this.instrument.generatePresetSequence();
+          break;
+
+        case 2:
+          this.instrument.generateRandomSequence();
+          break;
+      };
+
+      this.innerSequenceRenderer.renderOff();
+      this.outerSequenceRenderer.renderOff();
+    }
   }
 
   setHighlight(index) {
@@ -282,6 +363,7 @@ class StepSeqView extends soundworks.CanvasView {
   }
 }
 
+
 class StepSeqInstrument extends Instrument {
   constructor(environment, options) {
     super(environment, options);
@@ -291,12 +373,17 @@ class StepSeqInstrument extends Instrument {
     const numSteps = options.steps;
     this.numSteps = numSteps;
     this.stepsPerMeasure = numSteps / options.length;
-    this.numInnerSounds = this.options.inner.length;
-    this.numOuterSounds = this.options.outer.length;
+    this.numInnerSounds = this.options.inner.sounds.length;
+    this.numOuterSounds = this.options.outer.sounds.length;
 
     this.innerSequence = new Array(this.numSteps);
     this.outerSequence = new Array(this.numSteps);
     this.clear();
+
+    this.innerQuantile = new Array(this.numSteps);
+    this.outerQuantile = new Array(this.numSteps);
+    fillQuantile(this.innerQuantile, this.options.inner.random, this.numInnerSounds);
+    fillQuantile(this.outerQuantile, this.options.outer.random, this.numOuterSounds);
 
     const audioContext = this.audioContext;
     this.minCutoffFreq = 5;
@@ -376,8 +463,12 @@ class StepSeqInstrument extends Instrument {
     for (let i = 0; i < numSteps; i++)
       this.innerSequence[i] = 0;
 
+    this.environment.sendControl('inner-sequence', this.innerSequence);
+
     for (let i = 0; i < numSteps; i++)
       this.outerSequence[i] = 0;
+
+    this.environment.sendControl('outer-sequence', this.outerSequence);
   }
 
   setInnerStep(index) {
@@ -400,7 +491,7 @@ class StepSeqInstrument extends Instrument {
 
       const gain = audioContext.createGain();
       gain.connect(this.cutoff);
-      gain.gain.value = decibelToLinear(sound.gain);
+      gain.value = decibelToLinear(sound.gain);
 
       const src = audioContext.createBufferSource();
       src.connect(gain);
@@ -409,12 +500,37 @@ class StepSeqInstrument extends Instrument {
     }
   }
 
+  generatePresetSequence() {
+    this.setInnerSequence(this.options.inner.preset);
+    this.setOuterSequence(this.options.outer.preset);
+  }
+
+  generateRandomSequence() {
+    const randomInnerSequence = [];
+    const randomOuterSequence = [];
+    const thresholdMin = this.options.randomThresholdMin;
+    const thresholdMax = this.options.randomThresholdMax;
+    const randomRepeat = this.options.randomRepeat;
+    const numInnerSounds = this.options.inner.sounds.length;
+    const numOuterSounds = this.options.outer.sounds.length;
+    const innerPresetLength = this.options.inner.preset.length;
+    const outerPresetLength = this.options.outer.preset.length;
+
+    const innerSequence = this.innerSequence;
+    for (let i = 0; i < innerPresetLength; i++)
+      innerSequence[i] = getRandomFromQuantile(this.innerQuantile);
+
+    const outerSequence = this.outerSequence;
+    for (let i = 0; i < outerPresetLength; i++)
+      outerSequence[i] = getRandomFromQuantile(this.outerQuantile);
+  }
+
   onMetroBeat(measure, beat) {
     const innerState = this.innerSequence[beat];
-    this.makeSound(this.options.inner, innerState);
+    this.makeSound(this.options.inner.sounds, innerState);
 
     const outerState = this.outerSequence[beat];
-    this.makeSound(this.options.outer, outerState);
+    this.makeSound(this.options.outer.sounds, outerState);
 
     const view = this.view;
     if (view)
