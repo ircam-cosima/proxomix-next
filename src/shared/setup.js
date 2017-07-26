@@ -53,7 +53,10 @@ const setup = {
   }, ],
   instruments: {
     'harmo-arpeggiator': {
-      icon: 'icons/harmo-arpeggiator.svg',
+      icon: {
+        chooser: 'icons/harmo-arpeggiator.svg',
+        instrument: 'icons/harmo-arpeggiator-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -71,7 +74,10 @@ const setup = {
       }],
     },
     'pad-loop': {
-      icon: 'icons/pad-loop.svg',
+      icon: {
+        chooser: 'icons/pad-loop.svg',
+        instrument: 'icons/pad-loop-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -89,7 +95,10 @@ const setup = {
       }],
     },
     'melo-1': {
-      icon: 'icons/melo-1.svg',
+      icon: {
+        chooser: 'icons/melo-1.svg',
+        instrument: 'icons/melo-1-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -99,7 +108,10 @@ const setup = {
       }],
     },
     'melo-2': {
-      icon: 'icons/melo-2.svg',
+      icon: {
+        chooser: 'icons/melo-2.svg',
+        instrument: 'icons/melo-2-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -109,7 +121,10 @@ const setup = {
       }],
     },
     'bass-chord': {
-      icon: 'icons/bass-chord.svg',
+      icon: {
+        chooser: 'icons/bass-chord.svg',
+        instrument: 'icons/bass-chord-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -119,7 +134,10 @@ const setup = {
       }],
     },
     'bass-pad': {
-      icon: 'icons/bass-pad.svg',
+      icon: {
+        chooser: 'icons/bass-pad.svg',
+        instrument: 'icons/bass-pad-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -129,7 +147,10 @@ const setup = {
       }],
     },
     'bass-arpeggiator': {
-      icon: 'icons/bass-arpeggiator.svg',
+      icon: {
+        chooser: 'icons/bass-arpeggiator.svg',
+        instrument: 'icons/bass-arpeggiator-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -139,7 +160,10 @@ const setup = {
       }],
     },
     'fx-glitch': {
-      icon: 'icons/fx-glitch.svg',
+      icon: {
+        chooser: 'icons/fx-glitch.svg',
+        instrument: 'icons/fx-glitch-no-circle.svg',
+      },
       type: 'loop',
       length: 8,
       loops: [{
@@ -157,7 +181,10 @@ const setup = {
       }],
     },
     'dist-loop': {
-      icon: 'icons/dist-loop.svg',
+      icon: {
+        chooser: 'icons/dist-loop.svg',
+        instrument: 'icons/dist-loop-no-circle.svg',
+      },
       type: 'loop',
       length: 6,
       loops: [{
@@ -167,7 +194,10 @@ const setup = {
       }],
     },
     'perc-classic-1': {
-      icon: 'icons/perc-classic-1.svg',
+      icon: {
+        chooser: 'icons/perc-classic-1.svg',
+        instrument: 'icons/perc-classic-1-no-circle.svg',
+      },
       type: 'stepseq',
       length: 1,
       steps: 16,
@@ -189,7 +219,10 @@ const setup = {
       },
     },
     'perc-classic-2': {
-      icon: 'icons/perc-classic-2.svg',
+      icon: {
+        chooser: 'icons/perc-classic-2.svg',
+        instrument: 'icons/perc-classic-2-no-circle.svg',
+      },
       type: 'stepseq',
       length: 1,
       steps: 16,
@@ -211,7 +244,10 @@ const setup = {
       },
     },
     'perc-classic-3': {
-      icon: 'icons/perc-classic-3.svg',
+      icon: {
+        chooser: 'icons/perc-classic-3.svg',
+        instrument: 'icons/perc-classic-3-no-circle.svg',
+      },
       type: 'stepseq',
       length: 1,
       steps: 16,
@@ -239,7 +275,10 @@ const setup = {
       },
     },
     'perc-metallic-1': {
-      icon: 'icons/perc-metallic-1.svg',
+      icon: {
+        chooser: 'icons/perc-metallic-1.svg',
+        instrument: 'icons/perc-metallic-1-no-circle.svg',
+      },
       type: 'stepseq',
       length: 1,
       steps: 16,
@@ -261,7 +300,10 @@ const setup = {
       },
     },
     'perc-metallic-2': {
-      icon: 'icons/perc-metallic-2.svg',
+      icon: {
+        chooser: 'icons/perc-metallic-2.svg',
+        instrument: 'icons/perc-metallic-2-no-circle.svg',
+      },
       type: 'stepseq',
       length: 1,
       steps: 16,
@@ -283,7 +325,10 @@ const setup = {
       },
     },
     'perc-metallic-3': {
-      icon: 'icons/perc-metallic-3.svg',
+      icon: {
+        chooser: 'icons/perc-metallic-3.svg',
+        instrument: 'icons/perc-metallic-3-no-circle.svg',
+      },
       type: 'stepseq',
       length: 1,
       steps: 16,
@@ -311,7 +356,10 @@ const setup = {
       },
     },
     'chord-sequencer-1': {
-      icon: 'icons/chord-sequencer-1.svg',
+      icon: {
+        chooser: 'icons/chord-sequencer-1.svg',
+        instrument: 'icons/chord-sequencer-1-no-circle.svg',
+      },
       type: 'stepseq',
       length: 2,
       steps: 16,
@@ -336,7 +384,10 @@ const setup = {
       },
     },
     'chord-sequencer-2': {
-      icon: 'icons/chord-sequencer-2.svg',
+      icon: {
+        chooser: 'icons/chord-sequencer-2.svg',
+        instrument: 'icons/chord-sequencer-2-no-circle.svg',
+      },
       type: 'stepseq',
       length: 2,
       steps: 16,
@@ -361,7 +412,10 @@ const setup = {
       },
     },
     'chord-sequencer-3': {
-      icon: 'icons/chord-sequencer-3.svg',
+      icon: {
+        chooser: 'icons/chord-sequencer-3.svg',
+        instrument: 'icons/chord-sequencer-3-no-circle.svg',
+      },
       type: 'stepseq',
       length: 2,
       steps: 16,
@@ -379,6 +433,34 @@ const setup = {
           gain: 0,
         }, {
           buffer: 'sounds/chord-sequencer-3-3.wav',
+          gain: 0,
+        }],
+        preset: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+        random: 2,
+      },
+    },
+    'fx-water': {
+      icon: {
+        chooser: 'icons/fx-water.svg',
+        instrument: 'icons/fx-water-no-circle.svg',
+      },
+      type: 'stepseq',
+      length: 2,
+      steps: 16,
+      inner: {
+        sounds: [{
+          buffer: 'sounds/fx-water-1.wav',
+          gain: 0,
+        }],
+        preset: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        random: 3,
+      },
+      outer: {
+        sounds: [{
+          buffer: 'sounds/fx-water-2.wav',
+          gain: 0,
+        }, {
+          buffer: 'sounds/fx-water-3.wav',
           gain: 0,
         }],
         preset: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0],

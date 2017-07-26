@@ -116,7 +116,7 @@ class PlayerExperience extends soundworks.Experience {
     const iconList = [];
 
     for (let prop in rawMixSetup.instruments)
-      iconList.push(rawMixSetup.instruments[prop].icon);
+      iconList.push(rawMixSetup.instruments[prop].icon.chooser);
 
     const chooserView = new ChooserView(iconList, this.availablePlayers, this.onChooserButton);
     chooserView.render();

@@ -203,7 +203,7 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
 class StepSeqView extends soundworks.CanvasView {
   constructor(instrument, options) {
     super(template, {
-      icon: options.icon,
+      icon: options.icon.instrument,
     }, {}, {
       preservePixelRatio: true,
       ratios: {
