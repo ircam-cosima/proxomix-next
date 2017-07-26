@@ -5,7 +5,7 @@ const template = `
 `;
 
 class ChooserView extends soundworks.View {
-  constructor(icons, activeButtons, buttonCallback) {
+  constructor(icons, activeButtons, buttonCallback, foregroundColor) {
     super(template, {
       icons: icons,
     }, {}, {});
@@ -13,6 +13,7 @@ class ChooserView extends soundworks.View {
     this.icons = icons;
     this.activeButtons = activeButtons;
     this.buttonCallback = buttonCallback;
+    this.foregroundColor = foregroundColor;
 
     this.buttons = [];
   }
@@ -33,6 +34,7 @@ class ChooserView extends soundworks.View {
   onResize(...args) {
     super.onResize(...args);
 
+
     const numIcons = this.icons.length;
     const numCols = 4;
     const numRows = Math.ceil(numIcons / numCols);
@@ -41,6 +43,7 @@ class ChooserView extends soundworks.View {
     const height = (this.viewportHeight - margin) / numRows - margin;
     const container = this.$el.querySelector('.chooser-container');
     const icons = this.icons;
+    const foregroundColor = this.foregroundColor;
 
     this.buttons = [];
 
@@ -52,7 +55,9 @@ class ChooserView extends soundworks.View {
       const button = document.createElement("div");
 
       button.classList.add('chooser-button');
-      button.style.backgroundImage = `url('${icons[i]}')`;
+      foregroundColor === 'black' ?
+      button.style.backgroundImage = `url('${icons[i].black}')` :
+      button.style.backgroundImage = `url('${icons[i].white}')`;
       button.style.width = `${width}px`;
       button.style.height = `${height}px`;
       button.style.top = `${top}px`;
