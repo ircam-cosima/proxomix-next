@@ -22,9 +22,9 @@ const lowColor = '#3F3F3F';
 const highColor = '#7F7F7F';
 
 class LoopView extends CanvasView {
-  constructor(instrument, options) {
+  constructor(instrument, options, foregroundIsLight) {
     super(template, {
-      icon: options.icon.instrument,
+      icon: (instrument.foreground == 'white') ? options.icon.white : options.icon.black,
     }, {}, {
       preservePixelRatio: true,
       ratios: {
@@ -195,6 +195,10 @@ class LoopInstrument extends Instrument {
         this.loopTrack.setLoop(value);
         break;
     }
+  }
+
+  setForeground(isWhite) {
+    //this.view.;
   }
 
   showScreen() {
