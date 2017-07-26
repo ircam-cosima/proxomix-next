@@ -12,7 +12,7 @@ const audio = soundworks.audio;
 const audioContext = soundworks.audioContext;
 const audioScheduler = soundworks.audio.getScheduler();
 
-audioScheduler.lookahead = 0.15;
+audioScheduler.lookahead = 0.30;
 audioScheduler.period = 0.05;
 
 class PlayerExperience extends soundworks.Experience {
@@ -73,8 +73,12 @@ class PlayerExperience extends soundworks.Experience {
     const viewModel = {
       sorry: false,
     };
+    const colors = this.audioBufferManager.data.colors;
 
     this.view = new soundworks.View('');
+    this.view.$el.style.backgroundColor = colors[client.index].background;
+    this.view.$el.classList.add('black');
+
 
     this.show().then(() => {
       this.send('player:request');
@@ -118,11 +122,13 @@ class PlayerExperience extends soundworks.Experience {
 
   showChooser() {
     const iconList = [];
+    const colors = this.audioBufferManager.data.colors;
+    const foregroundColor = colors[client.index].foreground;
 
     for (let prop in rawMixSetup.instruments)
       iconList.push(rawMixSetup.instruments[prop].icon.chooser);
 
-    const chooserView = new ChooserView(iconList, this.availablePlayers, this.onChooserButton);
+    const chooserView = new ChooserView(iconList, this.availablePlayers, this.onChooserButton, foregroundColor);
     chooserView.render();
     chooserView.show();
     chooserView.appendTo(this.view.$el);
