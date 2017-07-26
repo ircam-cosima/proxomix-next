@@ -326,8 +326,8 @@ class StepSeqView extends soundworks.CanvasView {
       }
 
       const environment = instrument.environment;
-      environment.sendControl('inner-sequence', this.innerSequence);
-      environment.sendControl('outer-sequence', this.outerSequence);
+      environment.sendControl('inner-sequence', instrument.innerSequence);
+      environment.sendControl('outer-sequence', instrument.outerSequence);
 
       this.innerSequenceRenderer.renderOff();
       this.outerSequenceRenderer.renderOff();

@@ -5,7 +5,7 @@ const template = `
 `;
 
 class ChooserView extends soundworks.View {
-  constructor(icons, activeButtons, buttonCallback, foregroundColor) {
+  constructor(icons, activeButtons, buttonCallback) {
     super(template, {
       icons: icons,
     }, {}, {});
@@ -13,7 +13,6 @@ class ChooserView extends soundworks.View {
     this.icons = icons;
     this.activeButtons = activeButtons;
     this.buttonCallback = buttonCallback;
-    this.foregroundColor = foregroundColor;
 
     this.buttons = [];
   }
@@ -43,7 +42,6 @@ class ChooserView extends soundworks.View {
     const height = (this.viewportHeight - margin) / numRows - margin;
     const container = this.$el.querySelector('.chooser-container');
     const icons = this.icons;
-    const foregroundColor = this.foregroundColor;
 
     this.buttons = [];
 
@@ -55,8 +53,6 @@ class ChooserView extends soundworks.View {
       const button = document.createElement("div");
 
       button.classList.add('chooser-button');
-      foregroundColor === 'black' ?
-      button.style.backgroundImage = `url('${icons[i].black}')` :
       button.style.backgroundImage = `url('${icons[i].white}')`;
       button.style.width = `${width}px`;
       button.style.height = `${height}px`;

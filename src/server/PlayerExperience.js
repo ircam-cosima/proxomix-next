@@ -52,9 +52,6 @@ class Group {
     other.addNeighbour(player);
     other.setGroup(this);
     this.players.add(other);
-
-    xp.activeGroups.add(this);
-    xp.availableGroups.delete(this);
   }
 
   reset() {
@@ -185,6 +182,24 @@ class Player {
       this.beacons.push(-Infinity);
   }
 
+  init(client) {
+    this.client = client;
+    this.age = 0;
+
+    for (let i = 0; i < numInstruments; i++)
+      this.beacons[i] = -Infinity;
+  }
+
+  reset() {
+    const group = this.group;
+    group.remove(this);
+
+    this.innerCircle.clear();
+    this.outerGroupCircle.clear();
+
+    this.client = null;
+  }
+
   addNeighbour(neighbour) {
     xp.send(this.client, 'player:activate', [neighbour.id]);
   }
@@ -251,6 +266,40 @@ function groupCircleSort(player, other) {
   return playerValue - otherValue;
 }
 
+let groupA = null;
+let groupB = null;
+let players = [];
+
+function fakeGroups(playerId) {
+  const player = xp.players[playerId];
+  players.push(player);
+
+  if (xp.activePlayerIds.size === 2) {
+    const group = xp._getAvailableGroup();
+    const p = players[0];
+    const q = players[1];
+    group.init(p, q);
+    groupA = group;
+  } else if (xp.activePlayerIds.size === 3) {
+    const p = players[2];
+    groupA.add(p);
+  } else if (xp.activePlayerIds.size === 5) {
+    const group = xp._getAvailableGroup();
+    const p = players[3];
+    const q = players[4];
+    group.init(p, q);
+    groupB = group;
+
+    setTimeout(() => {
+      groupB.merge(groupA);
+    }, 5000);
+
+    setTimeout(() => {
+      groupA.remove(players[1]);
+    }, 8000);
+  }
+}
+
 // server-side 'player' experience.
 export default class PlayerExperience extends Experience {
   constructor(clientType) {
@@ -265,7 +314,7 @@ export default class PlayerExperience extends Experience {
     this.innerRssi = distanceToRssi(innerDistance);
     this.outerRssi = distanceToRssi(outerDistance);
 
-    this.players = [];    
+    this.players = [];
     this.activePlayerIds = new Set();
     this.availablePlayerIds = new Set();
 
@@ -314,42 +363,33 @@ export default class PlayerExperience extends Experience {
     super.exit(client);
 
     const playerId = client.activities[this.id].playerId;
-    if (playerId !== undefined) {
-      client.activities[this.id].playerId = undefined;
+    if (playerId !== undefined)
       this.exitPlayer(client, playerId);
-    }
   }
 
   enterPlayer(client, playerId) {
-    this.availablePlayerIds.delete(playerId);
-
-    this.activePlayerIds.add(playerId);
-    this.players[playerId].client = client;
+    const player = this.players[playerId];
+    player.init(client);
 
     client.activities[this.id].playerId = playerId;
+
+    this.activePlayerIds.add(playerId);
+    this.availablePlayerIds.delete(playerId);
 
     this.send(client, 'player:confirm', playerId);
     this.broadcast('player', client, 'player:unavailable', playerId);
 
-    if(this.activePlayerIds.size === 2) {
-      const group = this._getAvailableGroup();
-      const iter = this.activePlayerIds.values();
-      const p = this.players[iter.next().value];
-      const q = this.players[iter.next().value];
-
-      console.log("group:", group);
-      console.log("players:", p, q);
-
-      group.init(p, q);
-    }
+    fakeGroups(playerId);
   }
 
   exitPlayer(client, playerId) {
     if (this.activePlayerIds.has(playerId)) {
-      this.activePlayerIds.delete(playerId);
-      this.players[playerId].client = null;
+      const player = this.players[playerId];
+      player.reset();
 
-      this.broadcast('player', client, 'player:exit', playerId);
+      client.activities[this.id].playerId = undefined;
+
+      this.activePlayerIds.delete(playerId);
 
       setTimeout(() => {
         this.availablePlayerIds.add(playerId);
@@ -365,7 +405,7 @@ export default class PlayerExperience extends Experience {
 
   _initPlayerCircles() {
     // clear player's circles
-     
+
     for (let playerId of this.activePlayerIds) {
       const player = this.players[playerId];
       player.clearCircles();
@@ -457,7 +497,6 @@ export default class PlayerExperience extends Experience {
   _onPlayerId(client) {
     return (playerId) => {
       if (this.availablePlayerIds.has(playerId)) {
-        this.players[playerId].client = client;
         this.enterPlayer(client, playerId);
       }
     };
@@ -465,7 +504,6 @@ export default class PlayerExperience extends Experience {
 
   _onPlayerExit(client) {
     return (playerId) => {
-      this.players[playerId].client = null;
       this.exitPlayer(client, playerId);
     };
   }
@@ -493,9 +531,11 @@ export default class PlayerExperience extends Experience {
     return (playerId, name, value) => {
       const player = this.players[playerId];
 
-      if(player.group) {
-        for (let p of group.players)
-          this.send(p.client, 'instrument:control', playerId, name, value);
+      if (player.group) {
+        for (let p of player.group.players) {
+          if (p !== player)
+            this.send(p.client, 'instrument:control', playerId, name, value);
+        }
       }
     };
   }

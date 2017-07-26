@@ -76,9 +76,7 @@ class PlayerExperience extends soundworks.Experience {
     const colors = this.audioBufferManager.data.colors;
 
     this.view = new soundworks.View('');
-    this.view.$el.style.backgroundColor = colors[client.index].background;
     this.view.$el.classList.add('black');
-
 
     this.show().then(() => {
       this.send('player:request');
@@ -123,12 +121,11 @@ class PlayerExperience extends soundworks.Experience {
   showChooser() {
     const iconList = [];
     const colors = this.audioBufferManager.data.colors;
-    const foregroundColor = colors[client.index].foreground;
 
     for (let prop in rawMixSetup.instruments)
       iconList.push(rawMixSetup.instruments[prop].icon.chooser);
 
-    const chooserView = new ChooserView(iconList, this.availablePlayers, this.onChooserButton, foregroundColor);
+    const chooserView = new ChooserView(iconList, this.availablePlayers, this.onChooserButton);
     chooserView.render();
     chooserView.show();
     chooserView.appendTo(this.view.$el);
@@ -281,7 +278,7 @@ class PlayerExperience extends soundworks.Experience {
         const colors = mixSetup.colors[groupId];
 
         background = colors.background;
-        background = colors.foreground;
+        foreground = colors.foreground;
       }
 
       this.view.$el.style.backgroundColor = background;
