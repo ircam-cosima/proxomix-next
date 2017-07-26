@@ -309,23 +309,29 @@ class StepSeqView extends soundworks.CanvasView {
 
   onTouchButton(index) {
     return () => {
+      const instrument = this.instrument;
+
       switch (index) {
         case 0:
-          this.instrument.clear();
+          instrument.clear();
           break;
 
         case 1:
-          this.instrument.generatePresetSequence();
+          instrument.generatePresetSequence();
           break;
 
         case 2:
-          this.instrument.generateRandomSequence();
+          instrument.generateRandomSequence();
           break;
-      };
+      }
+
+      const environment = instrument.environment;
+      environment.sendControl('inner-sequence', this.innerSequence);
+      environment.sendControl('outer-sequence', this.outerSequence);
 
       this.innerSequenceRenderer.renderOff();
       this.outerSequenceRenderer.renderOff();
-    }
+    };
   }
 
   setHighlight(index) {
@@ -463,12 +469,8 @@ class StepSeqInstrument extends Instrument {
     for (let i = 0; i < numSteps; i++)
       this.innerSequence[i] = 0;
 
-    this.environment.sendControl('inner-sequence', this.innerSequence);
-
     for (let i = 0; i < numSteps; i++)
       this.outerSequence[i] = 0;
-
-    this.environment.sendControl('outer-sequence', this.outerSequence);
   }
 
   setInnerStep(index) {

@@ -45,9 +45,11 @@ class PlayerExperience extends soundworks.Experience {
     this.chooserView = null;
 
     this.playerId = undefined;
+    this.groupId = undefined;
     this.intrumentConfig = null;
     this.availablePlayers = null;
 
+    this.instrument = null;
     this.instruments = [];
     this.instrumentEnv = null;
 
@@ -55,13 +57,14 @@ class PlayerExperience extends soundworks.Experience {
     this.onHomeButton = this.onHomeButton.bind(this);
     this.onChooserButton = this.onChooserButton.bind(this);
     this.onPlayerConfirm = this.onPlayerConfirm.bind(this);
-
-    this.onPlayerEnter = this.onPlayerEnter.bind(this);
-    this.onPlayerExit = this.onPlayerExit.bind(this);
     this.onPlayerAvailable = this.onPlayerAvailable.bind(this);
+    this.onPlayerUnavailable = this.onPlayerUnavailable.bind(this);
+    this.onPlayerActivate = this.onPlayerActivate.bind(this);
+    this.onPlayerDisactivate = this.onPlayerDisactivate.bind(this);
+    this.onPlayerGroup = this.onPlayerGroup.bind(this);
 
-    this.onBeaconRanging = this.onBeaconRanging.bind(this);
     this.onInstrumentControl = this.onInstrumentControl.bind(this);
+    this.onBeaconRanging = this.onBeaconRanging.bind(this);
   }
 
   start() {
@@ -77,11 +80,12 @@ class PlayerExperience extends soundworks.Experience {
       this.send('player:request');
       this.receive('player:acknowledge', this.onPlayerAcknwoledge);
       this.receive('player:confirm', this.onPlayerConfirm);
-      this.receive('instrument:control', this.onInstrumentControl);
-
-      this.receive('player:enter', this.onPlayerEnter);
-      this.receive('player:exit', this.onPlayerExit);
       this.receive('player:available', this.onPlayerAvailable);
+      this.receive('player:unavailable', this.onPlayerUnavailable);
+      this.receive('player:activate', this.onPlayerActivate);
+      this.receive('player:disactivate', this.onPlayerDisactivate);
+      this.receive('player:group', this.onPlayerGroup);
+      this.receive('instrument:control', this.onInstrumentControl);
     });
 
     const mixSetup = this.audioBufferManager.data;
@@ -91,7 +95,7 @@ class PlayerExperience extends soundworks.Experience {
     this.instrumentEnv = {
       screenContainer: this.view.$el,
       motionInput: this.motionInput,
-      sendControl: this.sendIntrumentControl(this.playerId),
+      sendControl: this.sendIntrumentControl().bind(this),
       metricScheduler: this.metricScheduler,
       loopPlayer: loopPlayer,
     };
@@ -172,27 +176,6 @@ class PlayerExperience extends soundworks.Experience {
     this.showChooser();
   }
 
-  startInstruments(playerId) {
-    const mixSetup = this.audioBufferManager.data;
-    const instrument = this.instruments[playerId];
-
-    instrument.foreground = mixSetup.colors[playerId].foreground;
-    instrument.visible = true;
-    instrument.active = true;
-
-    this.addHomeButton(instrument);
-    this.mixer.setGain(playerId, 1);
-
-    // const instrumentList = Object.keys(mixSetup.instruments);
-    // const numInstruments = instrumentList.length;
-    // for (let i = 0; i < numInstruments; i++) {
-    //   if (i !== this.playerId) {
-    //     instrument.active = true;
-    //     this.mixer.setGain(i, 0.5);
-    //   }
-    // }
-  }
-
   stopInstruments() {
     for (let instrument of this.instruments) {
       instrument.visible = false;
@@ -217,9 +200,17 @@ class PlayerExperience extends soundworks.Experience {
   enterApplication(playerId) {
     this.playerId = playerId;
     this.availablePlayers.delete(playerId);
-    this.send('player:enter', playerId);
 
-    this.startInstruments(playerId);
+    const mixSetup = this.audioBufferManager.data;
+    const instrument = this.instruments[playerId];
+    instrument.foreground = mixSetup.colors[playerId].foreground;
+    instrument.visible = true;
+    instrument.active = true;
+    this.instrument = instrument;
+
+    this.addHomeButton(instrument);
+    this.mixer.setGain(playerId, 1);
+
     this.startBeaconing();
   }
 
@@ -233,24 +224,15 @@ class PlayerExperience extends soundworks.Experience {
       this.send('player:exit', playerId);
 
       this.playerId = undefined;
+      this.groupId = undefined;
+
+      this.setGroupColor();
+      this.instrument = null;
     }
   }
 
-  sendIntrumentControl(playerId) {
-    return (name, value) => this.send('instrument:control', playerId, name, value);
-  }
-
-  onPlayerEnter(playerId) {
-    this.availablePlayers.delete(playerId);
-    this.updateChooser();
-  }
-
-  onPlayerExit(playerId) {
-    this.mixer.setAutomation(playerId, 0, 0.05);
-
-    const instrument = this.instruments[playerId];
-    if (instrument)
-      instrument.active = false;
+  sendIntrumentControl() {
+    return (name, value) => this.send('instrument:control', this.playerId, name, value);
   }
 
   onPlayerAvailable(playerId) {
@@ -258,11 +240,57 @@ class PlayerExperience extends soundworks.Experience {
     this.updateChooser();
   }
 
+  onPlayerUnavailable(playerId) {
+    this.availablePlayers.delete(playerId);
+    this.updateChooser();
+  }
+
+  onPlayerActivate(playerIds) {
+    for (let id of playerIds) {
+      this.mixer.setAutomation(id, 1, 0.05);
+
+      const instrument = this.instruments[id];
+      instrument.active = true;
+    }
+  }
+
+  onPlayerDisactivate(playerIds) {
+    for (let id of playerIds) {
+      this.mixer.setAutomation(id, 0, 0.05);
+
+      const instrument = this.instruments[id];
+      instrument.active = false;
+    }
+  }
+
+  setGroupColor(groupId) {
+    const instrument = this.instrument;
+
+    if (instrument) {
+      let background = '#000000';
+      let foreground = 'white';
+
+      if (groupId !== undefined) {
+        const mixSetup = this.audioBufferManager.data;
+        const colors = mixSetup.colors[groupId];
+
+        background = colors.background;
+        background = colors.foreground;
+      }
+
+      this.view.$el.style.backgroundColor = background;
+      instrument.foreground = foreground;
+    }
+  }
+
+  onPlayerGroup(groupId) {
+    this.groupId = groupId;
+    this.setGroupColor(groupId);
+  }
+
   onInstrumentControl(playerId, name, value) {
     const instrument = this.instruments[playerId];
-
-    if (instrument)
-      instrument.setControl(name, value);
+    instrument.setControl(name, value);
   }
 
   onBeaconRanging(pluginResults) {
