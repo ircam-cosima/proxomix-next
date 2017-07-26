@@ -14,6 +14,43 @@ const setup = {
     measureLength: measureLength,
     measureDuration: measureDuration,
   },
+  colors: [{
+    backgroud: '#ff0000',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#ffffff',
+  }, {
+    backgroud: '#ffff00',
+    foregroud: '#000000',
+  }, ],
   instruments: {
     'harmo-arpeggiator': {
       icon: 'icons/harmo-arpeggiator.svg',

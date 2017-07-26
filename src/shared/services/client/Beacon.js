@@ -164,7 +164,7 @@ class Beacon extends Service {
             minor: minor === this.options.minor ? minor += 1 : minor,
             rssi: -1 * (80 * Math.random() + 20),   // [-20, -100]
             proximity: 'hi',
-          }
+          };
 
           minor += 1;
 
@@ -232,18 +232,6 @@ class Beacon extends Service {
   restartRanging() {
     this._stopRanging();
     this._startRanging();
-  }
-
-  /**
-   * remove registered callback from stack (see 'addCallback')
-   */
-  rssiToDist(rssi) {
-    if (!this._hasBeenCalibrated) {
-      console.warn('rssiToDist called prior to txPower definition (calibration), using default value:', this.options.txPower, 'dB');
-      this._hasBeenCalibrated = true;
-    }
-
-    return this._calculateAccuracy(this.txPower, rssi);
   }
 
   /** @private */
@@ -361,24 +349,6 @@ class Beacon extends Service {
       return Promise.resolve(true);
     else
       return Promise.resolve(false);
-  }
-
-  /**
-   * @private
-   * convert rssi to distance, naming (_calculateAccuracy rather than calculateDistance)
-   * is intentional: USE WITH CAUTION, as explained @
-   * http://stackoverflow.com/questions/20416218/understanding-ibeacon-distancing
-   */
-  _calculateAccuracy(txPower, rssi) {
-    if (rssi === 0)
-      return 0.0;
-
-    let ratio = rssi * 1.0 / txPower;
-
-    if (ratio < 1.0)
-      return Math.pow(ratio, 10);
-    else
-      return (0.89976 * Math.pow(ratio, 7.7095) + 0.111);
   }
 }
 

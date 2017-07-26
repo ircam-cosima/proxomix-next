@@ -7,6 +7,8 @@ class Instrument {
     this.environment = environment;
     this.options = options;
 
+    this.foreground = 'black';
+
     this._isVisible = false;
     this._isActive = false;
 
