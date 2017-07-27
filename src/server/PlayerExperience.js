@@ -346,7 +346,7 @@ export default class PlayerExperience extends Experience {
    * request --> acknowledge(availablePlayerIds, activePlayerIds)
    * id(playerId) --> confirm(playerId) ->> enter(playerId)
    * exit(plaeryerId) ->> exit(playerId)
-   * 
+   *
    */
 
   enter(client) {
@@ -379,7 +379,7 @@ export default class PlayerExperience extends Experience {
     this.send(client, 'player:confirm', playerId);
     this.broadcast('player', client, 'player:unavailable', playerId);
 
-    fakeGroups(playerId);
+    // fakeGroups(playerId);
   }
 
   exitPlayer(client, playerId) {
