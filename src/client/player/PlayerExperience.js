@@ -179,6 +179,27 @@ class PlayerExperience extends soundworks.Experience {
     this.showChooser();
   }
 
+  startInstruments(playerId) {
+    const mixSetup = this.audioBufferManager.data;
+    const instrument = this.instruments[playerId];
+
+    instrument.foreground = mixSetup.colors[client.index].foreground;
+    instrument.visible = true;
+    instrument.active = true;
+
+    this.addHomeButton(instrument);
+    this.mixer.setGain(playerId, 1);
+
+    // const instrumentList = Object.keys(mixSetup.instruments);
+    // const numInstruments = instrumentList.length;
+    // for (let i = 0; i < numInstruments; i++) {
+    //   if (i !== this.playerId) {
+    //     instrument.active = true;
+    //     this.mixer.setGain(i, 0.5);
+    //   }
+    // }
+  }
+
   stopInstruments() {
     for (let instrument of this.instruments) {
       instrument.visible = false;

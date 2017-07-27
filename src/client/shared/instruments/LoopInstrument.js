@@ -18,13 +18,16 @@ const template = `
   </div>
 `;
 
-const lowColor = '#3F3F3F';
-const highColor = '#7F7F7F';
+const lowColorWhite = 'rgba(255, 255, 255, 0.3)';
+const highColorWhite = 'rgba(255, 255, 255, 0.6)';
+const lowColorBlack = 'rgba(0, 0, 0, 0.3)';
+const highColorBlack = 'rgba(0, 0, 0, 0.6)';
+
 
 class LoopView extends CanvasView {
-  constructor(instrument, options, foregroundIsLight) {
+  constructor(instrument, options) {
     super(template, {
-      icon: (instrument.foreground == 'white') ? options.icon.white : options.icon.black,
+      icon: (instrument.foreground == 'white') ? options.icon.instrument.white : options.icon.instrument.black,
     }, {}, {
       preservePixelRatio: true,
       ratios: {
@@ -55,7 +58,7 @@ class LoopView extends CanvasView {
 
     const measureOptions = {
       zone: 0,
-      color: lowColor,
+      color: (this.instrument.foreground == 'white') ? lowColorWhite : lowColorBlack,
       opacity: 1,
     };
 
@@ -65,7 +68,7 @@ class LoopView extends CanvasView {
 
     const cursorOptions = {
       type: 'cursor',
-      color: '#000000',
+      color: (this.instrument.foreground == 'white') ? '#FFFFFF' : '#000000',
       opacity: 1,
       fadeOpacity: 0.02,
       numZones: 1,
@@ -93,14 +96,14 @@ class LoopView extends CanvasView {
       this.setActivatedButton(selectedButton);
     }
 
-    this.measureRenderer.setColor(highColor);
+    (this.instrument.foreground == 'white') ? this.measureRenderer.setColor(highColorWhite) : this.measureRenderer.setColor(highColorBlack);
   }
 
   selectButton(index) {
     if (index !== this.selectedButton) {
       this.selectedButton = index;
       this.setSelectedButton(index);
-      this.measureRenderer.setColor(lowColor);
+      (this.instrument.foreground == 'white') ? this.measureRenderer.setColor(lowColorWhite) : this.measureRenderer.setColor(lowColorBlack);
       this.instrument.setLoopIndex(index);
     }
   }
@@ -109,10 +112,19 @@ class LoopView extends CanvasView {
     for (let i = 0; i < this.buttons.length; i++) {
       const button = this.buttons[i];
 
-      if (index === i)
-        button.style.borderColor = highColor;
-      else
-        button.style.borderColor = lowColor;
+      if (index === i) {
+        if (this.instrument.foreground == 'white') {
+          button.style.borderColor = highColorWhite;
+        } else {
+          button.style.borderColor = highColorBlack;
+        }
+      } else {
+        if (this.instrument.foreground == 'white') {
+          button.style.borderColor = lowColorWhite;
+        } else {
+          button.style.borderColor = lowColorBlack;
+        }
+      }
     }
   }
 
@@ -140,7 +152,11 @@ class LoopView extends CanvasView {
         const button = document.createElement("div");
 
         const dot = document.createElement("div");
-        dot.style.backgroundColor = highColor;
+        if (this.instrument.foreground == 'white') {
+          dot.style.backgroundColor = highColorWhite;
+        } else {
+          dot.style.backgroundColor = highColorBlack;
+        }
         button.appendChild(dot);
 
         button.classList.add('loop-button');
