@@ -32,10 +32,10 @@ function distanceToRssi(distance) {
 }
 
 const maxAge = 1000;
-let xp = null;
 
 class Group {
-  constructor(id) {
+  constructor(experience, id) {
+    this.experience = experience;
     this.id = id;
     this.players = new Set();
     this.age = 0;
@@ -52,14 +52,19 @@ class Group {
     other.addNeighbour(player);
     other.setGroup(this);
     this.players.add(other);
+
+    const experience = this.experience;
+    experience.activeGroups.add(this);
+    experience.availableGroups.delete(this);
   }
 
   reset() {
     this.players.clear();
     this.age = 0;
 
-    xp.activeGroups.delete(this);
-    xp.availableGroups.add(this);
+    const experience = this.experience;
+    experience.activeGroups.delete(this);
+    experience.availableGroups.add(this);
   }
 
   canAdd(player) {
@@ -167,7 +172,8 @@ class Group {
 }
 
 class Player {
-  constructor(id) {
+  constructor(experience, id) {
+    this.experience = experience;
     this.id = id;
     this.client = null;
     this.beacons = [];
@@ -188,24 +194,40 @@ class Player {
 
     for (let i = 0; i < numInstruments; i++)
       this.beacons[i] = -Infinity;
+
+    const experience = this.experience;
+    experience.activePlayerIds.add(this.id);
+    experience.availablePlayerIds.delete(this.id);
+    experience.broadcast('player', client, 'player:unavailable', this.id);
   }
 
   reset() {
     const group = this.group;
-    group.remove(this);
+
+    if (group)
+      group.remove(this);
 
     this.innerCircle.clear();
     this.outerGroupCircle.clear();
 
     this.client = null;
+
+    const experience = this.experience;
+    experience.activePlayerIds.delete(this.id);
+    setTimeout(() => {
+      experience.availablePlayerIds.add(this.id);
+      experience.broadcast('player', null, 'player:available', this.id);
+    }, playerOutTime * 1000);
   }
 
   addNeighbour(neighbour) {
-    xp.send(this.client, 'player:activate', [neighbour.id]);
+    const experience = this.experience;
+    experience.send(this.client, 'player:activate', [neighbour.id]);
   }
 
   removeNeighbour(neighbour) {
-    xp.send(this.client, 'player:disactivate', [neighbour.id]);
+    const experience = this.experience;
+    experience.send(this.client, 'player:disactivate', [neighbour.id]);
   }
 
   addNeighbours(neighbours) {
@@ -216,7 +238,8 @@ class Player {
         array.push(n.id);
     }
 
-    xp.send(this.client, 'player:activate', array);
+    const experience = this.experience;
+    experience.send(this.client, 'player:activate', array);
   }
 
   removeNeighbours(neighbours) {
@@ -227,7 +250,8 @@ class Player {
         array.push(n.id);
     }
 
-    xp.send(this.client, 'player:disactivate', array);
+    const experience = this.experience;
+    experience.send(this.client, 'player:disactivate', array);
   }
 
   clearBeacons() {
@@ -246,12 +270,12 @@ class Player {
     this.group = group;
     this.age = 0;
 
-    xp.send(this.client, 'player:group', group.id);
+    this.experience.send(this.client, 'player:group', group.id);
   }
 
   resetGroup(group) {
     this.group = null;
-    xp.send(this.client, 'player:group');
+    this.experience.send(this.client, 'player:group');
   }
 
   incrAge() {
@@ -269,36 +293,6 @@ function groupCircleSort(player, other) {
 let groupA = null;
 let groupB = null;
 let players = [];
-
-function fakeGroups(playerId) {
-  const player = xp.players[playerId];
-  players.push(player);
-
-  if (xp.activePlayerIds.size === 2) {
-    const group = xp._getAvailableGroup();
-    const p = players[0];
-    const q = players[1];
-    group.init(p, q);
-    groupA = group;
-  } else if (xp.activePlayerIds.size === 3) {
-    const p = players[2];
-    groupA.add(p);
-  } else if (xp.activePlayerIds.size === 5) {
-    const group = xp._getAvailableGroup();
-    const p = players[3];
-    const q = players[4];
-    group.init(p, q);
-    groupB = group;
-
-    setTimeout(() => {
-      groupB.merge(groupA);
-    }, 5000);
-
-    setTimeout(() => {
-      groupA.remove(players[1]);
-    }, 8000);
-  }
-}
 
 // server-side 'player' experience.
 export default class PlayerExperience extends Experience {
@@ -324,22 +318,46 @@ export default class PlayerExperience extends Experience {
     for (let i = 0; i < numInstruments; i++) {
       this.availablePlayerIds.add(i);
 
-      const player = new Player(i);
+      const player = new Player(this, i);
       this.players.push(player);
     }
 
     for (let i = 0; i < numGroups; i++) {
-      const group = new Group(i);
+      const group = new Group(this, i);
       this.availableGroups.add(group);
     }
-
-    xp = this;
 
     this._onGroupHouskeeping = this._onGroupHouskeeping.bind(this);
   }
 
   start() {
     //setTimeout(this._onGroupHouskeeping, houskeepingPeriod * 1000);
+  }
+
+  fakeGroups(playerId) {
+    const player = this.players[playerId];
+    players.push(player);
+
+    if (this.activePlayerIds.size === 2) {
+      const p = players[0];
+      const q = players[1];
+      groupA = this.createGroup(p, q);
+    } else if (this.activePlayerIds.size === 3) {
+      const p = players[2];
+      groupA.add(p);
+    } else if (this.activePlayerIds.size === 5) {
+      const p = players[3];
+      const q = players[4];
+      groupB = this.createGroup(p, q);
+
+      setTimeout(() => {
+        groupB.merge(groupA);
+      }, 5000);
+
+      setTimeout(() => {
+        groupA.remove(players[1]);
+      }, 8000);
+    }
   }
 
   /*
@@ -364,43 +382,38 @@ export default class PlayerExperience extends Experience {
 
     const playerId = client.activities[this.id].playerId;
     if (playerId !== undefined)
-      this.exitPlayer(client, playerId);
+      this.desactivatePlayer(client, playerId);
   }
 
-  enterPlayer(client, playerId) {
+  activatePlayer(client, playerId) {
     const player = this.players[playerId];
     player.init(client);
 
     client.activities[this.id].playerId = playerId;
-
-    this.activePlayerIds.add(playerId);
-    this.availablePlayerIds.delete(playerId);
-
     this.send(client, 'player:confirm', playerId);
-    this.broadcast('player', client, 'player:unavailable', playerId);
 
-    fakeGroups(playerId);
+    // this.fakeGroups(playerId);
   }
 
-  exitPlayer(client, playerId) {
+  desactivatePlayer(client, playerId) {
     if (this.activePlayerIds.has(playerId)) {
       const player = this.players[playerId];
       player.reset();
 
       client.activities[this.id].playerId = undefined;
-
-      this.activePlayerIds.delete(playerId);
-
-      setTimeout(() => {
-        this.availablePlayerIds.add(playerId);
-        this.broadcast('player', null, 'player:available', playerId);
-      }, playerOutTime * 1000);
     }
   }
 
-  _getAvailableGroup() {
+  createGroup(player, other) {
     const iter = this.availableGroups.values();
-    return iter.next().value;
+    const group = iter.next().value;
+
+    if (!group)
+      throw new Error("Cannot find available group (this shouldn't happan)");
+
+    group.init(player, other);
+
+    return group;
   }
 
   _initPlayerCircles() {
@@ -439,13 +452,13 @@ export default class PlayerExperience extends Experience {
   }
 
   _reduceGroups() {
-    for (let group of xp.activeGroups)
+    for (let group of this.activeGroups)
       group.reduce();
   }
 
   _mergeGroups() {
-    for (let group of xp.activeGroups) {
-      for (let other of xp.activeGroups) {
+    for (let group of this.activeGroups) {
+      for (let other of this.activeGroups) {
         if (group.id < other.id) {
           if (group.canMerge(other)) {
             group.merge(other);
@@ -469,8 +482,7 @@ export default class PlayerExperience extends Experience {
               break;
             }
           } else {
-            group = this._getAvailableGroup();
-            group.init(player, neighbour);
+            this.createGroup(player, neighbour);
             break;
           }
         }
@@ -497,14 +509,14 @@ export default class PlayerExperience extends Experience {
   _onPlayerId(client) {
     return (playerId) => {
       if (this.availablePlayerIds.has(playerId)) {
-        this.enterPlayer(client, playerId);
+        this.activatePlayer(client, playerId);
       }
     };
   }
 
   _onPlayerExit(client) {
     return (playerId) => {
-      this.exitPlayer(client, playerId);
+      this.desactivatePlayer(client, playerId);
     };
   }
 

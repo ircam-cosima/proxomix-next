@@ -206,13 +206,15 @@ class PlayerExperience extends soundworks.Experience {
 
     const mixSetup = this.audioBufferManager.data;
     const instrument = this.instruments[playerId];
-    instrument.foreground = mixSetup.colors[playerId].foreground;
     instrument.visible = true;
     instrument.active = true;
     this.instrument = instrument;
 
     this.addHomeButton(instrument);
     this.mixer.setGain(playerId, 1);
+
+    // DEBUG
+    //this.onPlayerGroup(this.playerId % 12);
 
     this.startBeaconing();
   }
