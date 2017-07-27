@@ -8,23 +8,44 @@ const template = `
   <div class="foreground fit-container">
     <div class="section-top"></div>
     <div class="section-center flex-middle">
-      <div class="inst-icon" style="background-image: url(<%= icon %>)">
+      <div class="inst-icon-container">
+        <div class="inst-icon" style="background-image: url(<%= icon %>)"></div>
       </div>
-       <div class="loop-button-container">
-      </div>
+       <div class="loop-button-container"></div>
     </div>
     <div class="section-bottom"></div>
   </div>
 `;
 
-const colors = [
-  '#2f2f2f',
-  '#5f5f5f',
-  '#afafaf',
-  '#7F7F7F',
+const highlightColorWhite = '#ffffff';
+const highlightColorBlack = '#000000';
+
+const seqColorsBlack = [
+  'rgba(0, 0, 0, 0.3)',
+  'rgba(0, 0, 0, 0.6)',
+  'rgba(0, 0, 0, 0.8)',
 ];
 
-const highlightColor = '#ffffff';
+const seqColorsWhite = [
+  'rgba(255, 255, 255, 0.3)',
+  'rgba(255, 255, 255, 0.6)',
+  'rgba(255, 255, 255, 0.8)',
+];
+
+const stepColorBlack = '#000000';
+const stepColorWhite = '#ffffff';
+
+const iconsWhite = [
+  "url('icons/button-stepseq-1-white.svg')",
+  "url('icons/button-stepseq-2-white.svg')",
+  "url('icons/button-stepseq-3-white.svg')",
+];
+
+const iconsBlack = [
+  "url('icons/button-stepseq-1-black.svg')",
+  "url('icons/button-stepseq-2-black.svg')",
+  "url('icons/button-stepseq-3-black.svg')",
+];
 
 function radToDegrees(radians) {
   return radians * 180 / Math.PI;
@@ -94,6 +115,13 @@ class SequenceRenderer extends soundworks.Canvas2dRenderer {
     this.angles = angles;
     this.radius = radius;
     this.lineWidth = lineWidth;
+
+    this.colors = seqColorsWhite;
+  }
+
+  setColor(value) {
+    this.colors = value;
+    this.renderOff();
   }
 
   init() {
@@ -124,7 +152,7 @@ class SequenceRenderer extends soundworks.Canvas2dRenderer {
       const state = states[i];
       const angle = angles[i];
 
-      ctx.strokeStyle = colors[state];
+      ctx.strokeStyle = this.colors[state];
       ctx.lineWidth = this.lineWidth;
       ctx.globalAlpha = 1;
 
@@ -159,7 +187,14 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
     this.radius = radius;
     this.lineWidth = lineWidth;
 
+    this.color = highlightColorWhite;
+
     this.highlight = -1;
+  }
+
+  setColor(value) {
+    this.color = value;
+    this.render();
   }
 
   init() {}
@@ -177,7 +212,7 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
       const y0 = this.canvasHeight / 2;
       const angle = this.angles[this.highlight];
 
-      ctx.strokeStyle = highlightColor;
+      ctx.strokeStyle = this.color;
       ctx.lineWidth = this.lineWidth;
       ctx.globalAlpha = 0.8;
 
@@ -226,6 +261,8 @@ class StepSeqView extends soundworks.CanvasView {
     this.innerRadius = 0;
     this.outerRadius = 0;
     this.innerAngles = null;
+
+    this.icons = iconsWhite;
 
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchButton = this.onTouchButton.bind(this);
@@ -297,7 +334,7 @@ class StepSeqView extends soundworks.CanvasView {
 
       button.classList.add('loop-button');
       button.style.left = `${pos}%`;
-      button.style.backgroundImage = "url('icons/button-stepseq-" + `${i+1}` + ".svg')";
+      // button.style.backgroundImage = "url('icons/button-stepseq-" + `${i+1}` + "-white.svg')";
       button.addEventListener('touchstart', this.onTouchButton(i));
 
       buttonContainer.appendChild(button);
@@ -332,6 +369,34 @@ class StepSeqView extends soundworks.CanvasView {
       this.innerSequenceRenderer.renderOff();
       this.outerSequenceRenderer.renderOff();
     };
+  }
+
+  setForegroudColor(color) {
+    const isWhite = (color == 'white');
+    const seqColors = isWhite ? seqColorsWhite : seqColorsBlack;
+    const stepColor = isWhite ? stepColorWhite : stepColorBlack;
+    const icons = isWhite ? iconsWhite : iconsBlack;
+    const buttonColor = seqColors[2];
+
+    // set button color
+    if (this.buttons) {
+      const buttons = this.buttons;
+
+      for (let i = 0; i < buttons.length; i++) {
+        const button = buttons[i];
+        button.style.borderColor = buttonColor;
+        button.style.backgroundImage = icons[i];
+      }
+    }
+
+    const instrumentIcons = this.options.icon.instrument;
+    const icon = isWhite ? instrumentIcons.white : instrumentIcons.black;
+    this.model.icon = icon;
+    this.render('.inst-icon-container');
+
+    this.innerSequenceRenderer.setColor(seqColors);
+    this.outerSequenceRenderer.setColor(seqColors);
+    this.stepRenderer.setColor(stepColor);
   }
 
   setHighlight(index) {
@@ -483,6 +548,11 @@ class StepSeqInstrument extends Instrument {
     const state = (this.outerSequence[index] + 1) % (this.numOuterSounds + 1);
     this.outerSequence[index] = state;
     this.environment.sendControl('outer-sequence', this.outerSequence);
+  }
+
+  set foreground(value) {
+    if (this.view)
+      this.view.setForegroudColor(value);
   }
 
   makeSound(sounds, state) {

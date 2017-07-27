@@ -7,9 +7,20 @@
   font-weight: bold;
 }
 
-.home-button {
+.home-button-white {
   position: absolute;
   background: url(../icons/home-button-white.svg) 50% 50% no-repeat;
+  background-size: cover;
+  width: 40px;
+  height: 40px;
+  top: 10px;
+  right: 10px;
+  z-index: 999;
+}
+
+.home-button-black {
+  position: absolute;
+  background: url(../icons/home-button-black.svg) 50% 50% no-repeat;
   background-size: cover;
   width: 40px;
   height: 40px;

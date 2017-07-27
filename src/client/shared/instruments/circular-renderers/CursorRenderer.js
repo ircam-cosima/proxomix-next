@@ -12,7 +12,6 @@ class CursorRenderer extends BaseArcRenderer {
   constructor(displayLength, options, getCurrentMetricPosition) {
     super(0, displayLength);
 
-
     this.options = Object.assign({
       color: '#000000',
       opacity: 1,
@@ -20,7 +19,18 @@ class CursorRenderer extends BaseArcRenderer {
       numZones: 1,
     }, options);
 
+    this._color = options.color;
+    this._opacity = options.opacity;
+
     this.getCurrentMetricPosition = getCurrentMetricPosition;
+  }
+
+  setColor(value) {
+    this._color = value;
+  }
+
+  setOpacity(value) {
+    this._opacity = value;
   }
 
   render(ctx) {
@@ -49,9 +59,9 @@ class CursorRenderer extends BaseArcRenderer {
     _ctx.clearRect(0, 0, width, height);
     // cursor
     _ctx.save();
-    // _ctx.strokeStyle = this.options.color;
-    _ctx.strokeStyle = '#ffffff';
-    _ctx.globalAlpha = this.options.opacity;
+
+    _ctx.strokeStyle = this._color;
+    _ctx.globalAlpha = this._opacity;
     _ctx.lineWidth = 3;
 
     _ctx.translate(width / 2, height / 2);

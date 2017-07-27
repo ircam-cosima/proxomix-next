@@ -20,10 +20,13 @@ class MeasureRenderer extends BaseArcRenderer {
   }
 
   setColor(value) {
-    if(value !== this._color) {
-      this._color = value;
-      this._render();
-    }
+    this._color = value;
+    this._render();
+  }
+
+  setOpacity(value) {
+    this._opacity = value;
+    this._render();
   }
 
   init() {

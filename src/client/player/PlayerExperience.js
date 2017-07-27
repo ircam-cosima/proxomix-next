@@ -12,7 +12,7 @@ const audio = soundworks.audio;
 const audioContext = soundworks.audioContext;
 const audioScheduler = soundworks.audio.getScheduler();
 
-audioScheduler.lookahead = 0.30;
+audioScheduler.lookahead = 0.15;
 audioScheduler.period = 0.05;
 
 class PlayerExperience extends soundworks.Experience {
@@ -160,10 +160,18 @@ class PlayerExperience extends soundworks.Experience {
     this.enterApplication(playerId);
   }
 
-  addHomeButton(instrument) {
+  addHomeButton(instrument, playerId) {
     const container = instrument.view.$el;
     const button = document.createElement("div");
-    button.classList.add('home-button');
+    const mixSetup = this.audioBufferManager.data;
+    //DEBUG
+    const groupId = playerId;
+    const foreground = mixSetup.colors[groupId].foreground;
+    const isFgWhite = (foreground == 'white');
+
+    isFgWhite ?
+    button.classList.add('home-button-white') :
+    button.classList.add('home-button-black');
     button.addEventListener('touchstart', this.onHomeButton);
     container.appendChild(button);
   }
@@ -182,12 +190,11 @@ class PlayerExperience extends soundworks.Experience {
   startInstruments(playerId) {
     const mixSetup = this.audioBufferManager.data;
     const instrument = this.instruments[playerId];
-
     instrument.foreground = mixSetup.colors[client.index].foreground;
     instrument.visible = true;
     instrument.active = true;
 
-    this.addHomeButton(instrument);
+    // this.addHomeButton(instrument);
     this.mixer.setGain(playerId, 1);
 
     // const instrumentList = Object.keys(mixSetup.instruments);
@@ -231,11 +238,11 @@ class PlayerExperience extends soundworks.Experience {
     instrument.active = true;
     this.instrument = instrument;
 
-    this.addHomeButton(instrument);
+    this.addHomeButton(instrument, this.playerId % 12);
     this.mixer.setGain(playerId, 1);
 
     // DEBUG
-    //this.onPlayerGroup(this.playerId % 12);
+    this.onPlayerGroup(this.playerId % 12);
 
     this.startBeaconing();
   }
