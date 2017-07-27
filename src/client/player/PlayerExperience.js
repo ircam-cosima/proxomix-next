@@ -182,7 +182,7 @@ class PlayerExperience extends soundworks.Experience {
     const mixSetup = this.audioBufferManager.data;
     const instrument = this.instruments[playerId];
 
-    instrument.foreground = mixSetup.colors[playerId].foreground;
+    instrument.foreground = mixSetup.colors[client.index].foreground;
     instrument.visible = true;
     instrument.active = true;
 
