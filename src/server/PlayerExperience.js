@@ -7,8 +7,9 @@ const tempo = mixSetup.common.tempo;
 const tempoUnit = mixSetup.common.tempoUnit;
 const numGroups = numInstruments / 2;
 
+const maxPlayersPerGroup = 4;
 const houskeepingPeriod = 1;
-const playerOutTime = 1;
+const playerOutTime = 3;
 
 const innerDistance = 1;
 const outerDistance = 1.5;
@@ -32,6 +33,15 @@ function distanceToRssi(distance) {
 }
 
 const maxAge = 1000;
+
+function getIdArray(s) {
+  const a = [];
+
+  for (let e of s)
+    a.push(e.id);
+
+  return a;
+}
 
 class Group {
   constructor(experience, id) {
@@ -79,15 +89,21 @@ class Group {
   }
 
   add(player) {
-    // add player as neighbour of players of the group
-    for (let p of this.players)
-      p.addNeighbour(player);
+    const players = this.players;
 
-    // add all players of the group as neighbours of the added player
-    player.addNeighbours(this.players);
-    player.setGroup(this);
+    if (players.size < maxPlayersPerGroup) {
+      // add player as neighbour of players of the group
+      for (let p of players)
+        p.addNeighbour(player);
 
-    this.players.add(player);
+      // add all players of the group as neighbours of the added player
+      player.addNeighbours(players);
+      player.setGroup(this);
+
+      this.players.add(player);
+    } else {
+      player.pendingGroup = this;
+    }
   }
 
   remove(player) {
@@ -138,15 +154,42 @@ class Group {
       merge = this;
     }
 
-    for (let p of keep.players)
-      p.addNeighbours(merge.players);
+    const availablePlaces = (maxPlayersPerGroup - keep.players.size);
+    const numCandidates = merge.players.size;
+    const numMigrants = Math.min(availablePlaces, numCandidates);
+    const iter = this.merge.players.values();
+    const residents = keep.players; 
+    const migrants = new Set();
 
-    for (let p of merge.players) {
-      keep.players.add(p);
+    for (let i = 0; i < numMigrants; i++) {
+      const p = iter.next().value;
+
+      // add to ephemeral set of migrants
+      migrants.add(p);
+
+      // add residents as new neighbours and change group of migrant
+      p.addNeighbours(residents);
       p.setGroup(keep);
-      p.addNeighbours(keep.players);
     }
 
+    // add migrants as new neighbours of all residents
+    for (let p of residents)
+      p.addNeighbours(migrants);
+
+    // add migrants to residents
+    for (let p of migrants)
+      residents.add(p);
+
+    // refuse non-accepted migrant cadidates 
+    for (let i = numMigrants; i < numCandidates; i++) {
+      const p = iter.next().value;
+
+      p.removeNeighbours(merge.players);
+      p.resetGroup();
+      p.pendingGroup = keep;
+    }
+
+    // reset and free group quietly
     merge.reset();
   }
 
@@ -183,6 +226,7 @@ class Player {
 
     this.innerCircle = new Set();
     this.outerGroupCircle = new Set();
+    this.pendingGroup = null;
 
     for (let i = 0; i < numInstruments; i++)
       this.beacons.push(-Infinity);
@@ -209,6 +253,7 @@ class Player {
 
     this.innerCircle.clear();
     this.outerGroupCircle.clear();
+    this.pendingGroup = null;
 
     this.client = null;
 
@@ -264,6 +309,7 @@ class Player {
   clearCircles() {
     this.innerCircle.clear();
     this.outerGroupCircle.clear();
+    this.pendingGroup = null;
   }
 
   setGroup(group) {
@@ -287,7 +333,7 @@ class Player {
 function groupCircleSort(player, other) {
   const playerValue = player.outerGroupCircle.size + player.age / maxAge;
   const otherValue = other.outerGroupCircle.size + other.age / maxAge;
-  return playerValue - otherValue;
+  return otherValue - playerValue;
 }
 
 let groupA = null;
@@ -331,7 +377,7 @@ export default class PlayerExperience extends Experience {
   }
 
   start() {
-    //setTimeout(this._onGroupHouskeeping, houskeepingPeriod * 1000);
+    this._onGroupHouskeeping();
   }
 
   fakeGroups(playerId) {
@@ -473,16 +519,28 @@ export default class PlayerExperience extends Experience {
     for (let playerId of this.activePlayerIds) {
       const player = this.players[playerId];
 
-      if (!player.group) {
+      if (!player.group && !player.pendingGroup) {
         for (let neighbour of player.innerCircle) {
           let group = neighbour.group;
 
-          if (group) {
-            if (group.canAdd(player)) {
-              group.add(player);
-              break;
-            }
-          } else {
+          if (group && group.canAdd(player)) {
+            group.add(player);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  _createGroups() {
+    for (let playerId of this.activePlayerIds) {
+      const player = this.players[playerId];
+
+      if (!player.group && !player.pendingGroup) {
+        for (let neighbour of player.innerCircle) {
+          let group = neighbour.group;
+
+          if (!group) {
             this.createGroup(player, neighbour);
             break;
           }
@@ -496,6 +554,7 @@ export default class PlayerExperience extends Experience {
     this._reduceGroups();
     this._mergeGroups();
     this._extendGroups();
+    this._createGroups();
 
     setTimeout(this._onGroupHouskeeping, houskeepingPeriod * 1000);
   }
@@ -525,8 +584,9 @@ export default class PlayerExperience extends Experience {
     return (playerId, data) => {
       const player = this.players[playerId];
       const beacons = player.beacons;
-
       player.clearBeacons();
+
+      console.log(playerId, data);
 
       for (let i = 0; i < data.length; i += 2) {
         const otherPlayerId = data[i];
