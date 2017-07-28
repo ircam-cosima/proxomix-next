@@ -36,15 +36,15 @@ const stepColorBlack = '#000000';
 const stepColorWhite = '#ffffff';
 
 const iconsWhite = [
-  "url('icons/button-stepseq-1-white.svg')",
-  "url('icons/button-stepseq-2-white.svg')",
-  "url('icons/button-stepseq-3-white.svg')",
+  "url('icons/button-stepseq-1-white.png')",
+  "url('icons/button-stepseq-2-white.png')",
+  "url('icons/button-stepseq-3-white.png')",
 ];
 
 const iconsBlack = [
-  "url('icons/button-stepseq-1-black.svg')",
-  "url('icons/button-stepseq-2-black.svg')",
-  "url('icons/button-stepseq-3-black.svg')",
+  "url('icons/button-stepseq-1-black.png')",
+  "url('icons/button-stepseq-2-black.png')",
+  "url('icons/button-stepseq-3-black.png')",
 ];
 
 function radToDegrees(radians) {

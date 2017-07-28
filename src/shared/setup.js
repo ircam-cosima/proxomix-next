@@ -55,12 +55,12 @@ const setup = {
     'harmo-arpeggiator': {
       icon: {
         chooser: {
-          white: 'icons/harmo-arpeggiator-white.svg',
-          black: 'icons/harmo-arpeggiator-black.svg',
+          white: 'icons/harmo-arpeggiator-white.png',
+          black: 'icons/harmo-arpeggiator-black.png',
         },
         instrument: {
-          white: 'icons/harmo-arpeggiator-no-circle-white.svg',
-          black: 'icons/harmo-arpeggiator-no-circle-black.svg',
+          white: 'icons/harmo-arpeggiator-no-circle-white.png',
+          black: 'icons/harmo-arpeggiator-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -82,12 +82,12 @@ const setup = {
     'pad-loop': {
       icon: {
         chooser: {
-          white: 'icons/pad-loop-white.svg',
-          black: 'icons/pad-loop-black.svg',
+          white: 'icons/pad-loop-white.png',
+          black: 'icons/pad-loop-black.png',
         },
         instrument: {
-          white: 'icons/pad-loop-no-circle-white.svg',
-          black: 'icons/pad-loop-no-circle-black.svg',
+          white: 'icons/pad-loop-no-circle-white.png',
+          black: 'icons/pad-loop-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -109,12 +109,12 @@ const setup = {
     'melo-1': {
       icon: {
         chooser: {
-          white: 'icons/melo-1-white.svg',
-          black: 'icons/melo-1-black.svg',
+          white: 'icons/melo-1-white.png',
+          black: 'icons/melo-1-black.png',
         },
         instrument: {
-          white: 'icons/melo-1-no-circle-white.svg',
-          black: 'icons/melo-1-no-circle-black.svg',
+          white: 'icons/melo-1-no-circle-white.png',
+          black: 'icons/melo-1-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -128,12 +128,12 @@ const setup = {
     'melo-2': {
       icon: {
         chooser: {
-          white: 'icons/melo-2-white.svg',
-          black: 'icons/melo-2-black.svg',
+          white: 'icons/melo-2-white.png',
+          black: 'icons/melo-2-black.png',
         },
         instrument: {
-          white: 'icons/melo-2-no-circle-white.svg',
-          black: 'icons/melo-2-no-circle-black.svg',
+          white: 'icons/melo-2-no-circle-white.png',
+          black: 'icons/melo-2-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -147,12 +147,12 @@ const setup = {
     'bass-chord': {
       icon: {
         chooser: {
-          white: 'icons/bass-chord-white.svg',
-          black: 'icons/bass-chord-black.svg',
+          white: 'icons/bass-chord-white.png',
+          black: 'icons/bass-chord-black.png',
         },
         instrument: {
-          white: 'icons/bass-chord-no-circle-white.svg',
-          black: 'icons/bass-chord-no-circle-black.svg',
+          white: 'icons/bass-chord-no-circle-white.png',
+          black: 'icons/bass-chord-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -166,12 +166,12 @@ const setup = {
     'bass-pad': {
       icon: {
         chooser: {
-          white: 'icons/bass-pad-white.svg',
-          black: 'icons/bass-pad-black.svg',
+          white: 'icons/bass-pad-white.png',
+          black: 'icons/bass-pad-black.png',
         },
         instrument: {
-          white: 'icons/bass-pad-no-circle-white.svg',
-          black: 'icons/bass-pad-no-circle-black.svg',
+          white: 'icons/bass-pad-no-circle-white.png',
+          black: 'icons/bass-pad-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -185,12 +185,12 @@ const setup = {
     'bass-arpeggiator': {
       icon: {
         chooser: {
-          white: 'icons/bass-arpeggiator-white.svg',
-          black: 'icons/bass-arpeggiator-black.svg',
+          white: 'icons/bass-arpeggiator-white.png',
+          black: 'icons/bass-arpeggiator-black.png',
         },
         instrument: {
-          white: 'icons/bass-arpeggiator-no-circle-white.svg',
-          black: 'icons/bass-arpeggiator-no-circle-black.svg',
+          white: 'icons/bass-arpeggiator-no-circle-white.png',
+          black: 'icons/bass-arpeggiator-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -204,12 +204,12 @@ const setup = {
     'fx-glitch': {
       icon: {
         chooser: {
-          white: 'icons/fx-glitch-white.svg',
-          black: 'icons/fx-glitch-black.svg',
+          white: 'icons/fx-glitch-white.png',
+          black: 'icons/fx-glitch-black.png',
         },
         instrument: {
-          white: 'icons/fx-glitch-no-circle-white.svg',
-          black: 'icons/fx-glitch-no-circle-black.svg',
+          white: 'icons/fx-glitch-no-circle-white.png',
+          black: 'icons/fx-glitch-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -231,12 +231,12 @@ const setup = {
     'dist-loop': {
       icon: {
         chooser: {
-          white: 'icons/dist-loop-white.svg',
-          black: 'icons/dist-loop-black.svg',
+          white: 'icons/dist-loop-white.png',
+          black: 'icons/dist-loop-black.png',
         },
         instrument: {
-          white: 'icons/dist-loop-no-circle-white.svg',
-          black: 'icons/dist-loop-no-circle-black.svg',
+          white: 'icons/dist-loop-no-circle-white.png',
+          black: 'icons/dist-loop-no-circle-black.png',
         },
       },
       type: 'loop',
@@ -250,12 +250,12 @@ const setup = {
     'perc-classic-1': {
       icon: {
         chooser: {
-          white: 'icons/perc-classic-1-white.svg',
-          black: 'icons/perc-classic-1-black.svg',
+          white: 'icons/perc-classic-1-white.png',
+          black: 'icons/perc-classic-1-black.png',
         },
         instrument: {
-          white: 'icons/perc-classic-1-no-circle-white.svg',
-          black: 'icons/perc-classic-1-no-circle-black.svg',
+          white: 'icons/perc-classic-1-no-circle-white.png',
+          black: 'icons/perc-classic-1-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -281,12 +281,12 @@ const setup = {
     'perc-classic-2': {
       icon: {
         chooser: {
-          white: 'icons/perc-classic-2-white.svg',
-          black: 'icons/perc-classic-2-black.svg',
+          white: 'icons/perc-classic-2-white.png',
+          black: 'icons/perc-classic-2-black.png',
         },
         instrument: {
-          white: 'icons/perc-classic-2-no-circle-white.svg',
-          black: 'icons/perc-classic-2-no-circle-black.svg',
+          white: 'icons/perc-classic-2-no-circle-white.png',
+          black: 'icons/perc-classic-2-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -312,12 +312,12 @@ const setup = {
     'perc-classic-3': {
       icon: {
         chooser: {
-          white: 'icons/perc-classic-3-white.svg',
-          black: 'icons/perc-classic-3-black.svg',
+          white: 'icons/perc-classic-3-white.png',
+          black: 'icons/perc-classic-3-black.png',
         },
         instrument: {
-          white: 'icons/perc-classic-3-no-circle-white.svg',
-          black: 'icons/perc-classic-3-no-circle-black.svg',
+          white: 'icons/perc-classic-3-no-circle-white.png',
+          black: 'icons/perc-classic-3-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -349,12 +349,12 @@ const setup = {
     'perc-metallic-1': {
       icon: {
         chooser: {
-          white: 'icons/perc-metallic-1-white.svg',
-          black: 'icons/perc-metallic-1-black.svg',
+          white: 'icons/perc-metallic-1-white.png',
+          black: 'icons/perc-metallic-1-black.png',
         },
         instrument: {
-          white: 'icons/perc-metallic-1-no-circle-white.svg',
-          black: 'icons/perc-metallic-1-no-circle-black.svg',
+          white: 'icons/perc-metallic-1-no-circle-white.png',
+          black: 'icons/perc-metallic-1-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -380,12 +380,12 @@ const setup = {
     'perc-metallic-2': {
       icon: {
         chooser: {
-          white: 'icons/perc-metallic-2-white.svg',
-          black: 'icons/perc-metallic-2-black.svg',
+          white: 'icons/perc-metallic-2-white.png',
+          black: 'icons/perc-metallic-2-black.png',
         },
         instrument: {
-          white: 'icons/perc-metallic-2-no-circle-white.svg',
-          black: 'icons/perc-metallic-2-no-circle-black.svg',
+          white: 'icons/perc-metallic-2-no-circle-white.png',
+          black: 'icons/perc-metallic-2-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -411,12 +411,12 @@ const setup = {
     'perc-metallic-3': {
       icon: {
         chooser: {
-          white: 'icons/perc-metallic-3-white.svg',
-          black: 'icons/perc-metallic-3-black.svg',
+          white: 'icons/perc-metallic-3-white.png',
+          black: 'icons/perc-metallic-3-black.png',
         },
         instrument: {
-          white: 'icons/perc-metallic-3-no-circle-white.svg',
-          black: 'icons/perc-metallic-3-no-circle-black.svg',
+          white: 'icons/perc-metallic-3-no-circle-white.png',
+          black: 'icons/perc-metallic-3-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -448,12 +448,12 @@ const setup = {
     'chord-sequencer-1': {
       icon: {
         chooser: {
-          white: 'icons/chord-sequencer-1-white.svg',
-          black: 'icons/chord-sequencer-1-black.svg',
+          white: 'icons/chord-sequencer-1-white.png',
+          black: 'icons/chord-sequencer-1-black.png',
         },
         instrument: {
-          white: 'icons/chord-sequencer-1-no-circle-white.svg',
-          black: 'icons/chord-sequencer-1-no-circle-black.svg',
+          white: 'icons/chord-sequencer-1-no-circle-white.png',
+          black: 'icons/chord-sequencer-1-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -482,12 +482,12 @@ const setup = {
     'chord-sequencer-2': {
       icon: {
         chooser: {
-          white: 'icons/chord-sequencer-2-white.svg',
-          black: 'icons/chord-sequencer-2-black.svg',
+          white: 'icons/chord-sequencer-2-white.png',
+          black: 'icons/chord-sequencer-2-black.png',
         },
         instrument: {
-          white: 'icons/chord-sequencer-2-no-circle-white.svg',
-          black: 'icons/chord-sequencer-2-no-circle-black.svg',
+          white: 'icons/chord-sequencer-2-no-circle-white.png',
+          black: 'icons/chord-sequencer-2-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -516,12 +516,12 @@ const setup = {
     'chord-sequencer-3': {
       icon: {
         chooser: {
-          white: 'icons/chord-sequencer-3-white.svg',
-          black: 'icons/chord-sequencer-3-black.svg',
+          white: 'icons/chord-sequencer-3-white.png',
+          black: 'icons/chord-sequencer-3-black.png',
         },
         instrument: {
-          white: 'icons/chord-sequencer-3-no-circle-white.svg',
-          black: 'icons/chord-sequencer-3-no-circle-black.svg',
+          white: 'icons/chord-sequencer-3-no-circle-white.png',
+          black: 'icons/chord-sequencer-3-no-circle-black.png',
         },
       },
       type: 'stepseq',
@@ -550,12 +550,12 @@ const setup = {
     'fx-water': {
       icon: {
         chooser: {
-          white: 'icons/fx-water-white.svg',
-          black: 'icons/fx-water-black.svg',
+          white: 'icons/fx-water-white.png',
+          black: 'icons/fx-water-black.png',
         },
         instrument: {
-          white: 'icons/fx-water-no-circle-white.svg',
-          black: 'icons/fx-water-no-circle-black.svg',
+          white: 'icons/fx-water-no-circle-white.png',
+          black: 'icons/fx-water-no-circle-black.png',
         },
       },
       type: 'stepseq',
