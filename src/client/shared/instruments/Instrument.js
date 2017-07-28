@@ -3,9 +3,9 @@ const audioScheduler = audio.getScheduler();
 const audioContext = audio.audioContext;
 
 class Instrument {
-  constructor(environment = {}, options = {}) {
+  constructor(environment = {}, setup = {}) {
     this.environment = environment;
-    this.options = options;
+    this.setup = setup;
 
     this.foreground = 'white';
 
