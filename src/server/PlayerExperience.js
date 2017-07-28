@@ -7,7 +7,7 @@ const tempo = mixSetup.common.tempo;
 const tempoUnit = mixSetup.common.tempoUnit;
 const numGroups = numInstruments / 2;
 
-const maxPlayersPerGroup = 4;
+const maxPlayersPerGroup = 8;
 const houskeepingPeriod = 1;
 const playerOutTime = 3;
 
