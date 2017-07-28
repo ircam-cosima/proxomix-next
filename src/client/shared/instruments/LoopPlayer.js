@@ -9,7 +9,6 @@ function appendSegments(segments, loopSegment, measureDuration) {
   const buffer = loopSegment.buffer;
   const bufferDuration = buffer ? buffer.duration : 0;
   const offset = loopSegment.offset || 0;
-  const gain = loopSegment.gain || 0;
   const repeat = loopSegment.repeat || 1;
 
   for (let n = 0; n < repeat; n++) {
@@ -19,7 +18,7 @@ function appendSegments(segments, loopSegment, measureDuration) {
       const offsetInBuffer = offset + i * measureDuration;
 
       if (offsetInBuffer < bufferDuration) {
-        const segment = new Segment(buffer, offsetInBuffer, Infinity, 0, gain, cont);
+        const segment = new Segment(buffer, offsetInBuffer, Infinity, 0, cont);
         segments.push(segment);
       }
 
@@ -29,11 +28,10 @@ function appendSegments(segments, loopSegment, measureDuration) {
 }
 
 class Segment {
-  constructor(buffer, offsetInBuffer = 0, durationInBuffer = Infinity, gain = 0, cont = false) {
+  constructor(buffer, offsetInBuffer = 0, durationInBuffer = Infinity, cont = false) {
     this.buffer = buffer;
     this.offsetInBuffer = offsetInBuffer;
     this.durationInBuffer = durationInBuffer; // 0: continue untill next segment starts
-    this.gain = gain;
     this.continue = cont; // segment continues previous segment
   }
 }
@@ -90,12 +88,8 @@ class SegmentTrack {
         transitionTime = offsetInBuffer;
       }
 
-      const gain = audioContext.createGain();
-      gain.connect(this.cutoff);
-      gain.gain.value = decibelToLinear(segment.gain);
-
       const env = audioContext.createGain();
-      env.connect(gain);
+      env.connect(this.cutoff);
 
       if (transitionTime > 0) {
         env.gain.value = 0;

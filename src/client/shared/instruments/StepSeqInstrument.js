@@ -568,13 +568,8 @@ class StepSeqInstrument extends Instrument {
       const audioContext = this.audioContext;
       const time = this.currentTime;
       const sound = sounds[state - 1];
-
-      const gain = audioContext.createGain();
-      gain.connect(this.cutoff);
-      gain.value = decibelToLinear(sound.gain);
-
       const src = audioContext.createBufferSource();
-      src.connect(gain);
+      src.connect(this.cutoff);
       src.buffer = sound.buffer;
       src.start(time);
     }
