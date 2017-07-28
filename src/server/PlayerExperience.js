@@ -259,10 +259,13 @@ class Player {
 
     const experience = this.experience;
     experience.activePlayerIds.delete(this.id);
-    setTimeout(() => {
-      experience.availablePlayerIds.add(this.id);
-      experience.broadcast('player', null, 'player:available', this.id);
-    }, playerOutTime * 1000);
+    experience.availablePlayerIds.add(this.id);
+    experience.broadcast('player', null, 'player:available', this.id);
+
+    // setTimeout(() => {
+    //   experience.availablePlayerIds.add(this.id);
+    //   experience.broadcast('player', null, 'player:available', this.id);
+    // }, playerOutTime * 1000);
   }
 
   addNeighbour(neighbour) {

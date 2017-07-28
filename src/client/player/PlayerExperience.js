@@ -338,9 +338,12 @@ class PlayerExperience extends soundworks.Experience {
     const data = [];
 
     pluginResults.beacons.forEach((beacon, index) => {
-      if (beacon.minor < this.numInstruments) {
-        data.push(beacon.minor);
-        data.push(beacon.rssi);
+      const minor = beacon.minor;
+      const rssi = beacon.rssi;
+
+      if (minor < this.numInstruments && rssi < 0) {
+        data.push(minor);
+        data.push(rssi);
       }
     });
 
