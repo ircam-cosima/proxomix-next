@@ -194,7 +194,6 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
 
   setColor(value) {
     this.color = value;
-    this.render();
   }
 
   init() {}
@@ -238,7 +237,7 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
 class StepSeqView extends soundworks.CanvasView {
   constructor(instrument, options) {
     super(template, {
-      icon: options.icon.instrument,
+      icon: options.icon.instrument.white,
     }, {}, {
       preservePixelRatio: true,
       ratios: {
@@ -334,7 +333,7 @@ class StepSeqView extends soundworks.CanvasView {
 
       button.classList.add('loop-button');
       button.style.left = `${pos}%`;
-      // button.style.backgroundImage = "url('icons/button-stepseq-" + `${i+1}` + "-white.svg')";
+      button.style.backgroundImage = this.icons[i];
       button.addEventListener('touchstart', this.onTouchButton(i));
 
       buttonContainer.appendChild(button);
@@ -447,6 +446,8 @@ class StepSeqInstrument extends Instrument {
     this.numInnerSounds = this.options.inner.sounds.length;
     this.numOuterSounds = this.options.outer.sounds.length;
 
+    this.lastCutoff = 0;
+
     this.innerSequence = new Array(this.numSteps);
     this.outerSequence = new Array(this.numSteps);
     this.clear();
@@ -499,6 +500,13 @@ class StepSeqInstrument extends Instrument {
     }
   }
 
+  updateControl() {
+    const environment = this.environment;
+    environment.sendControl('inner-sequence', this.innerSequence);
+    environment.sendControl('outer-sequence', this.outerSequence);
+    environment.sendControl('cutoff', this.lastCutoff);
+  }
+
   showScreen(environment) {
     const view = new StepSeqView(this, this.options);
     this.addView(view);
@@ -512,7 +520,7 @@ class StepSeqInstrument extends Instrument {
   }
 
   startSound() {
-    this.lastCutoff = -Infinity;
+    this.lastCutoff = 0;
     this.addMetronome(this.onMetroBeat, this.numSteps, this.stepsPerMeasure);
   }
 
