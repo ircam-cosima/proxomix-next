@@ -275,7 +275,7 @@ class Player {
 
   removeNeighbour(neighbour) {
     const experience = this.experience;
-    experience.send(this.client, 'player:disactivate', [neighbour.id]);
+    experience.send(this.client, 'player:deactivate', [neighbour.id]);
   }
 
   addNeighbours(neighbours) {
@@ -299,7 +299,7 @@ class Player {
     }
 
     const experience = this.experience;
-    experience.send(this.client, 'player:disactivate', array);
+    experience.send(this.client, 'player:deactivate', array);
   }
 
   clearBeacons() {

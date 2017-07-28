@@ -61,7 +61,7 @@ class PlayerExperience extends soundworks.Experience {
     this.onPlayerAvailable = this.onPlayerAvailable.bind(this);
     this.onPlayerUnavailable = this.onPlayerUnavailable.bind(this);
     this.onPlayerActivate = this.onPlayerActivate.bind(this);
-    this.onPlayerDisactivate = this.onPlayerDisactivate.bind(this);
+    this.onPlayerDeactivate = this.onPlayerDeactivate.bind(this);
     this.onPlayerGroup = this.onPlayerGroup.bind(this);
 
     this.onInstrumentControl = this.onInstrumentControl.bind(this);
@@ -86,7 +86,7 @@ class PlayerExperience extends soundworks.Experience {
       this.receive('player:available', this.onPlayerAvailable);
       this.receive('player:unavailable', this.onPlayerUnavailable);
       this.receive('player:activate', this.onPlayerActivate);
-      this.receive('player:disactivate', this.onPlayerDisactivate);
+      this.receive('player:deactivate', this.onPlayerDeactivate);
       this.receive('player:group', this.onPlayerGroup);
       this.receive('instrument:control', this.onInstrumentControl);
     });
@@ -288,7 +288,7 @@ class PlayerExperience extends soundworks.Experience {
     }
   }
 
-  onPlayerDisactivate(playerIds) {
+  onPlayerDeactivate(playerIds) {
     for (let id of playerIds) {
       this.mixer.setAutomation(id, 0, 0.05);
 
