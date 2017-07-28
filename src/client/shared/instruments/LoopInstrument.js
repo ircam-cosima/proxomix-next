@@ -219,6 +219,9 @@ class LoopInstrument extends Instrument {
     this.loopTrack = null;
     this.output = null;
 
+    this.lastCutoff = 0;
+    this.loopIndex = 0;
+
     this.onAccelerationIncludingGravity = this.onAccelerationIncludingGravity.bind(this);
   }
 
@@ -234,10 +237,16 @@ class LoopInstrument extends Instrument {
     }
   }
 
+  updateControl() {
+    const environment = this.environment;
+    environment.sendControl('select', this.loopIndex);
+    environment.sendControl('cutoff', this.lastCutoff);
+  }
+
   showScreen() {
     const view = new LoopView(this, this.options);
 
-    this.lastCutoff = -Infinity;
+    this.lastCutoff = 0;
 
     this.addView(view);
     this.addMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
@@ -284,6 +293,7 @@ class LoopInstrument extends Instrument {
   }
 
   setLoopIndex(index) {
+    this.loopIndex = index;
     this.loopTrack.setLoop(index);
     this.environment.sendControl('select', index);
   }

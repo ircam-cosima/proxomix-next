@@ -118,6 +118,7 @@ class Instrument {
    * (to be implemented by the instrument)
    */
   setControl(name, value) {}
+  updateControl() {}
   showScreen() {}
   hideScreen() {}
   startSensors() {}
