@@ -107,10 +107,62 @@ function setSequence(sequence, values) {
     sequence[i] = values[i];
 }
 
-class SequenceRenderer extends soundworks.Canvas2dRenderer {
-  constructor(states, angles, radius, lineWidth) {
+class OffScreenRenderer extends soundworks.Canvas2dRenderer {
+  constructor() {
     super(0);
 
+    this.offCanvas = null;
+    this.offCtx = null;
+    this.renderers = new Set();
+  }
+
+  init() {
+    this.offCanvas = document.createElement('canvas');
+    this.offCanvas.width = this.canvasWidth;
+    this.offCanvas.height = this.canvasHeight;
+    this.offCtx = this.offCanvas.getContext('2d');
+  }
+
+  add(renderer) {
+    this.renderers.add(renderer);
+  }
+
+  remove(renderer) {
+    this.renderers.remove(renderer);
+  }
+
+  update(dt) {}
+
+  refresh() {
+    const ctx = this.offCtx;
+    const width = this.canvasWidth;
+    const height = this.canvasHeight;
+
+    ctx.save();
+    ctx.clearRect(0, 0, width, height);
+
+    for(let r of this.renderers)
+      r.refresh(ctx, width, height);
+
+    ctx.restore();
+  }
+
+  render(ctx) {
+    ctx.drawImage(this.offCanvas, 0, 0, this.canvasWidth, this.canvasHeight);
+  }
+
+  onResize(width, height) {
+    super.onResize(width, height);
+
+    if (this.offCanvas) {
+      this.offCanvas.width = this.canvasWidth;
+      this.offCanvas.height = this.canvasHeight;
+    }
+  }
+}
+
+class SequenceRenderer {
+  constructor(states, angles, radius, lineWidth) {
     this.states = states;
     this.angles = angles;
     this.radius = radius;
@@ -119,34 +171,11 @@ class SequenceRenderer extends soundworks.Canvas2dRenderer {
     this.colors = seqColorsWhite;
   }
 
-  setColor(value) {
-    this.colors = value;
-    this.renderOff();
-  }
-
-  init() {
-    this.$cachedCanvas = document.createElement('canvas');
-    this.$cachedCanvas.width = this.canvasWidth;
-    this.$cachedCanvas.height = this.canvasHeight;
-    this.cachedCtx = this.$cachedCanvas.getContext('2d');
-
-    this.renderOff();
-  }
-
-  update(dt) {}
-
-  renderOff() {
-    const ctx = this.cachedCtx;
-    const width = this.canvasWidth;
-    const height = this.canvasHeight;
-
-    ctx.save();
-    ctx.clearRect(0, 0, width, height);
-
+  refresh(ctx, width, height) {
     const angles = this.angles;
     const states = this.states;
-    const x0 = this.canvasWidth / 2;
-    const y0 = this.canvasHeight / 2;
+    const x0 = width / 2;
+    const y0 = height / 2;
 
     for (let i = 0; i < states.length; i++) {
       const state = states[i];
@@ -160,21 +189,6 @@ class SequenceRenderer extends soundworks.Canvas2dRenderer {
       ctx.arc(x0, y0, this.radius, angle.start, angle.stop, false);
       ctx.stroke();
       ctx.closePath();
-    }
-
-    ctx.restore();
-  }
-
-  render(ctx) {
-    ctx.drawImage(this.$cachedCanvas, 0, 0, this.canvasWidth, this.canvasHeight);
-  }
-
-  onResize(width, height) {
-    super.onResize(width, height);
-
-    if (this.$cachedCanvas) {
-      this.$cachedCanvas.width = this.canvasWidth;
-      this.$cachedCanvas.height = this.canvasHeight;
     }
   }
 }
@@ -190,10 +204,6 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
     this.color = highlightColorWhite;
 
     this.highlight = -1;
-  }
-
-  setColor(value) {
-    this.color = value;
   }
 
   init() {}
@@ -235,11 +245,12 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
 }
 
 class StepSeqView extends soundworks.CanvasView {
-  constructor(instrument, options) {
+  constructor(instrument, setup) {
     super(template, {
-      icon: options.icon.instrument.white,
+      icon: setup.icon.instrument.white,
     }, {}, {
-      preservePixelRatio: true,
+      preservePixelRatio: false,
+      skipFrames: 3,
       ratios: {
         '.section-top': 0,
         '.section-center': 1,
@@ -248,13 +259,14 @@ class StepSeqView extends soundworks.CanvasView {
     });
 
     this.instrument = instrument;
-    this.options = options;
+    this.setup = setup;
 
+    this.offScreen = null;
     this.innerSequenceRenderer = null;
     this.outerSequenceRenderer = null;
     this.touchSurface = null;
 
-    this.numSteps = options.steps;
+    this.numSteps = setup.steps;
     this.innerLineWidth = 0;
     this.outerLineWidth = 0;
     this.innerRadius = 0;
@@ -297,12 +309,16 @@ class StepSeqView extends soundworks.CanvasView {
 
     const instrument = this.instrument;
     const innerSequenceRenderer = new SequenceRenderer(instrument.innerSequence, innerAngles, innerRadius, innerLineWidth - 2 * gap);
-    this.addRenderer(innerSequenceRenderer);
     this.innerSequenceRenderer = innerSequenceRenderer;
 
     const outerSequenceRenderer = new SequenceRenderer(instrument.outerSequence, outerAngles, outerRadius, outerLineWidth - 2 * gap);
-    this.addRenderer(outerSequenceRenderer);
     this.outerSequenceRenderer = outerSequenceRenderer;
+
+    const offScreen = new OffScreenRenderer();
+    this.addRenderer(offScreen);
+    offScreen.add(innerSequenceRenderer);
+    offScreen.add(outerSequenceRenderer);
+    this.offScreen = offScreen;
 
     const stepRenderer = new StepRenderer(outerAngles, outerRadius, outerLineWidth - 2 * gap);
     this.addRenderer(stepRenderer);
@@ -365,8 +381,7 @@ class StepSeqView extends soundworks.CanvasView {
       environment.sendControl('inner-sequence', instrument.innerSequence);
       environment.sendControl('outer-sequence', instrument.outerSequence);
 
-      this.innerSequenceRenderer.renderOff();
-      this.outerSequenceRenderer.renderOff();
+      this.offScreen.refresh();
     };
   }
 
@@ -388,14 +403,15 @@ class StepSeqView extends soundworks.CanvasView {
       }
     }
 
-    const instrumentIcons = this.options.icon.instrument;
+    const instrumentIcons = this.setup.icon.instrument;
     const icon = isWhite ? instrumentIcons.white : instrumentIcons.black;
     this.model.icon = icon;
     this.render('.inst-icon-container');
 
-    this.innerSequenceRenderer.setColor(seqColors);
-    this.outerSequenceRenderer.setColor(seqColors);
-    this.stepRenderer.setColor(stepColor);
+    this.stepRenderer.color = stepColor;
+    this.innerSequenceRenderer.colors = seqColors;
+    this.outerSequenceRenderer.colors = seqColors;
+    this.offScreen.refresh();
   }
 
   setHighlight(index) {
@@ -417,13 +433,12 @@ class StepSeqView extends soundworks.CanvasView {
       const instrument = this.instrument;
       const index = Math.floor((numSteps * (450 - angle) / 360) + 0.5) % numSteps;
 
-      if (radius < this.centerRadius) {
+      if (radius < this.centerRadius)
         instrument.setInnerStep(index);
-        this.innerSequenceRenderer.renderOff();
-      } else {
+      else
         instrument.setOuterStep(index);
-        this.outerSequenceRenderer.renderOff();
-      }
+
+      this.offScreen.refresh();
     }
   }
 
@@ -435,16 +450,16 @@ class StepSeqView extends soundworks.CanvasView {
 
 
 class StepSeqInstrument extends Instrument {
-  constructor(environment, options) {
-    super(environment, options);
+  constructor(environment, setup) {
+    super(environment, setup);
 
     this.view = null;
 
-    const numSteps = options.steps;
+    const numSteps = setup.steps;
     this.numSteps = numSteps;
-    this.stepsPerMeasure = numSteps / options.length;
-    this.numInnerSounds = this.options.inner.sounds.length;
-    this.numOuterSounds = this.options.outer.sounds.length;
+    this.stepsPerMeasure = numSteps / setup.length;
+    this.numInnerSounds = this.setup.inner.sounds.length;
+    this.numOuterSounds = this.setup.outer.sounds.length;
 
     this.lastCutoff = 0;
 
@@ -454,8 +469,8 @@ class StepSeqInstrument extends Instrument {
 
     this.innerQuantile = new Array(this.numSteps);
     this.outerQuantile = new Array(this.numSteps);
-    fillQuantile(this.innerQuantile, this.options.inner.random, this.numInnerSounds);
-    fillQuantile(this.outerQuantile, this.options.outer.random, this.numOuterSounds);
+    fillQuantile(this.innerQuantile, this.setup.inner.random, this.numInnerSounds);
+    fillQuantile(this.outerQuantile, this.setup.outer.random, this.numOuterSounds);
 
     const audioContext = this.audioContext;
     this.minCutoffFreq = 5;
@@ -508,7 +523,7 @@ class StepSeqInstrument extends Instrument {
   }
 
   showScreen(environment) {
-    const view = new StepSeqView(this, this.options);
+    const view = new StepSeqView(this, this.setup);
     this.addView(view);
     this.addMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
   }
@@ -576,20 +591,21 @@ class StepSeqInstrument extends Instrument {
   }
 
   generatePresetSequence() {
-    this.setInnerSequence(this.options.inner.preset);
-    this.setOuterSequence(this.options.outer.preset);
+    this.setInnerSequence(this.setup.inner.preset);
+    this.setOuterSequence(this.setup.outer.preset);
   }
 
   generateRandomSequence() {
+    const setup = this.setup;
     const randomInnerSequence = [];
     const randomOuterSequence = [];
-    const thresholdMin = this.options.randomThresholdMin;
-    const thresholdMax = this.options.randomThresholdMax;
-    const randomRepeat = this.options.randomRepeat;
-    const numInnerSounds = this.options.inner.sounds.length;
-    const numOuterSounds = this.options.outer.sounds.length;
-    const innerPresetLength = this.options.inner.preset.length;
-    const outerPresetLength = this.options.outer.preset.length;
+    const thresholdMin = setup.randomThresholdMin;
+    const thresholdMax = setup.randomThresholdMax;
+    const randomRepeat = setup.randomRepeat;
+    const numInnerSounds = setup.inner.sounds.length;
+    const numOuterSounds = setup.outer.sounds.length;
+    const innerPresetLength = setup.inner.preset.length;
+    const outerPresetLength = setup.outer.preset.length;
 
     const innerSequence = this.innerSequence;
     for (let i = 0; i < innerPresetLength; i++)
@@ -601,11 +617,12 @@ class StepSeqInstrument extends Instrument {
   }
 
   onMetroBeat(measure, beat) {
+    const setup = this.setup;
     const innerState = this.innerSequence[beat];
-    this.makeSound(this.options.inner.sounds, innerState);
+    this.makeSound(setup.inner.sounds, innerState);
 
     const outerState = this.outerSequence[beat];
-    this.makeSound(this.options.outer.sounds, outerState);
+    this.makeSound(setup.outer.sounds, outerState);
 
     const view = this.view;
     if (view)

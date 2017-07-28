@@ -24,11 +24,12 @@ const lowColorBlack = 'rgba(0, 0, 0, 0.3)';
 const highColorBlack = 'rgba(0, 0, 0, 0.6)';
 
 class LoopView extends CanvasView {
-  constructor(instrument, options) {
+  constructor(instrument, setup) {
     super(template, {
-      icon: options.icon.instrument.white,
+      icon: setup.icon.instrument.white,
     }, {}, {
-      preservePixelRatio: true,
+      preservePixelRatio: false,
+      skipFrames: 3,
       ratios: {
         '.section-top': 0,
         '.section-center': 1,
@@ -47,8 +48,8 @@ class LoopView extends CanvasView {
     this.selectedButton = 0;
     this.activatedButton = 0;
 
-    this.length = options.length;
-    this.options = options;
+    this.length = setup.length;
+    this.setup = setup;
 
     this.onMeasureStart = this.onMeasureStart.bind(this);
   }
@@ -83,7 +84,7 @@ class LoopView extends CanvasView {
     this.cursorRenderer = cursorRenderer;
 
     this.instrument.addMetronome(this.onMeasureStart, 1, 1);
-    this.makeButtons(this.options.loops.length);
+    this.makeButtons(this.setup.loops.length);
   }
 
   remove() {
@@ -187,7 +188,7 @@ class LoopView extends CanvasView {
     // const cursorColor = isWhite ? '#ffffff' : '#000000';
     // this.cursorRenderer.setColor(cursorColor);
 
-    const instrumentIcons = this.options.icon.instrument;
+    const instrumentIcons = this.setup.icon.instrument;
     const icon = isWhite ? instrumentIcons.white : instrumentIcons.black;
     this.model.icon = icon;
     this.render('.inst-icon-container');
@@ -212,10 +213,10 @@ class LoopView extends CanvasView {
 }
 
 class LoopInstrument extends Instrument {
-  constructor(environment, options) {
-    super(environment, options);
+  constructor(environment, setup) {
+    super(environment, setup);
 
-    this.options = options;
+    this.setup = setup;
     this.loopTrack = null;
     this.output = null;
 
@@ -244,7 +245,7 @@ class LoopInstrument extends Instrument {
   }
 
   showScreen() {
-    const view = new LoopView(this, this.options);
+    const view = new LoopView(this, this.setup);
 
     this.lastCutoff = 0;
 
@@ -258,7 +259,7 @@ class LoopInstrument extends Instrument {
   }
 
   startSound() {
-    const loopTrack = this.addLoopTrack(this.options.loops);
+    const loopTrack = this.addLoopTrack(this.setup.loops);
     const output = this.output;
 
     if (output)

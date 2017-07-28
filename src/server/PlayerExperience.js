@@ -157,9 +157,10 @@ class Group {
     const availablePlaces = (maxPlayersPerGroup - keep.players.size);
     const numCandidates = merge.players.size;
     const numMigrants = Math.min(availablePlaces, numCandidates);
-    const iter = this.merge.players.values();
+    const cadidates = merge.players;
     const residents = keep.players; 
     const migrants = new Set();
+    const iter = cadidates.values();
 
     for (let i = 0; i < numMigrants; i++) {
       const p = iter.next().value;
@@ -184,7 +185,7 @@ class Group {
     for (let i = numMigrants; i < numCandidates; i++) {
       const p = iter.next().value;
 
-      p.removeNeighbours(merge.players);
+      p.removeNeighbours(cadidates);
       p.resetGroup();
       p.pendingGroup = keep;
     }
