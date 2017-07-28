@@ -103,8 +103,8 @@ class PlayerExperience extends soundworks.Experience {
       loopPlayer: loopPlayer,
     };
 
-    this.mixer = new Mixer(this.metricScheduler);
-    this.mixer.connect(audioContext.destination);
+    //this.mixer = new Mixer(this.metricScheduler);
+    //this.mixer.connect(audioContext.destination);
 
     // create instruments
     const instrumentList = Object.keys(mixSetup.instruments);
@@ -116,7 +116,8 @@ class PlayerExperience extends soundworks.Experience {
       const instrumentId = instrumentList[i];
       const instrumentSetup = mixSetup.instruments[instrumentId];
       const instrument = instrumentFactory.createInstrument(this.instrumentEnv, instrumentSetup.type, instrumentSetup);
-      this.mixer.createChannel(i, instrument);
+      //this.mixer.createChannel(i, instrument);
+      instrument.connect(audioContext.destination);
       this.instruments[i] = instrument;
     }
 
@@ -240,7 +241,7 @@ class PlayerExperience extends soundworks.Experience {
     this.instrument = instrument;
 
     this.addHomeButton(instrument);
-    this.mixer.setGain(playerId, 1);
+    //this.mixer.setGain(playerId, 1);
 
     this.setGroupColor();
 
@@ -281,7 +282,7 @@ class PlayerExperience extends soundworks.Experience {
 
   onPlayerActivate(playerIds) {
     for (let id of playerIds) {
-      this.mixer.setAutomation(id, 1, 0.05);
+      //this.mixer.setAutomation(id, 1, 0.05);
 
       const instrument = this.instruments[id];
       instrument.active = true;
@@ -290,7 +291,7 @@ class PlayerExperience extends soundworks.Experience {
 
   onPlayerDeactivate(playerIds) {
     for (let id of playerIds) {
-      this.mixer.setAutomation(id, 0, 0.05);
+      //this.mixer.setAutomation(id, 0, 0.05);
 
       const instrument = this.instruments[id];
       instrument.active = false;
