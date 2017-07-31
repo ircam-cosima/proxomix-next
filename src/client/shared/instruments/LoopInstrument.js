@@ -92,27 +92,27 @@ class LoopView extends CanvasView {
     this.instrument.removeMetronome(this.onMeasureStart);
   }
 
+  selectButton(index) {
+    if (index !== this.selectedButton) {
+      this.selectedButton = index;
+      this.setSelectedButton(index);
+      this.measureRenderer.setColor(this.lowColor);
+      this.instrument.setLoop(index, true);
+    }
+  }
+
   activateSelectedButton() {
     const selectedButton = this.selectedButton;
 
     if (selectedButton !== this.activatedButton) {
       this.activatedButton = selectedButton;
-      this.updateActivatedButton(selectedButton);
+      this.setActivatedButton(selectedButton);
     }
 
     this.measureRenderer.setColor(this.highColor);
   }
 
-  selectButton(index) {
-    if (index !== this.selectedButton) {
-      this.selectedButton = index;
-      this.updateSelectedButton(index);
-      this.measureRenderer.setColor(this.lowColor);
-      this.instrument.setLoopIndex(index);
-    }
-  }
-
-  updateSelectedButton(index) {
+  setSelectedButton(index) {
     for (let i = 0; i < this.buttons.length; i++) {
       const button = this.buttons[i];
 
@@ -123,7 +123,7 @@ class LoopView extends CanvasView {
     }
   }
 
-  updateActivatedButton(index) {
+  setActivatedButton(index) {
     for (let i = 0; i < this.buttons.length; i++) {
       const button = this.buttons[i];
       const dot = button.firstChild;
@@ -161,8 +161,9 @@ class LoopView extends CanvasView {
         pos += space;
       }
 
-      this.updateSelectedButton(0);
-      this.updateActivatedButton(0);
+      const loop = this.instrument.loop;
+      this.setSelectedButton(loop);
+      this.setActivatedButton(loop);
     }
   }
 
@@ -181,8 +182,8 @@ class LoopView extends CanvasView {
         dot.style.backgroundColor = highColor;
       }
 
-      this.updateSelectedButton(this.selectedButton);
-      this.updateActivatedButton(this.activatedButton);
+      this.setSelectedButton(this.selectedButton);
+      this.setActivatedButton(this.activatedButton);
     }
 
     // const cursorColor = isWhite ? '#ffffff' : '#000000';
@@ -216,39 +217,59 @@ class LoopInstrument extends Instrument {
   constructor(environment, setup) {
     super(environment, setup);
 
-    this.setup = setup;
+    this.resetState();
     this.loopTrack = null;
-    this.output = null;
 
-    this.lastCutoff = 0;
-    this.loopIndex = 0;
+    const audioContext = this.audioContext;
+    this.minCutoffFreq = 5;
+    this.maxCutoffFreq = audioContext.sampleRate / 2;
+    this.logCutoffRatio = Math.log(this.maxCutoffFreq / this.minCutoffFreq);
+
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = this.maxCutoffFreq;
+    this.filter = filter;
 
     this.onAccelerationIncludingGravity = this.onAccelerationIncludingGravity.bind(this);
   }
 
-  setControl(name, value) {
+  resetState() {
+    this.cutoff = 1;
+    this.loop = 0;
+  }
+
+  setLoop(index, send) {
+    this.loop = index;
+
+    if(this.loopTrack)
+      this.loopTrack.setLoop(index);
+
+    if (send)
+      this.sendParam('loop', index);
+  }
+
+  setCutoff(value, send) {
+    this.cutoff = value;
+    this.filter.frequency.value = this.minCutoffFreq * Math.exp(this.logCutoffRatio * Math.sqrt(value));
+
+    if (send)
+      this.sendParam('cutoff', value);
+  }
+
+  setParam(name, value) {
     switch (name) {
       case 'cutoff':
-        this.loopTrack.setCutoff(value);
+        this.setCutoff(value, false);
         break;
 
-      case 'select':
-        this.loopTrack.setLoop(value);
+      case 'loop':
+        this.setLoop(value, false);
         break;
     }
   }
 
-  updateControl() {
-    const environment = this.environment;
-    environment.sendControl('select', this.loopIndex);
-    environment.sendControl('cutoff', this.lastCutoff);
-  }
-
   showScreen() {
     const view = new LoopView(this, this.setup);
-
-    this.lastCutoff = 0;
-
     this.addView(view);
     this.addMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
   }
@@ -259,13 +280,8 @@ class LoopInstrument extends Instrument {
   }
 
   startSound() {
-    const loopTrack = this.addLoopTrack(this.setup.loops);
-    const output = this.output;
-
-    if (output)
-      loopTrack.connect(output);
-
-    this.loopTrack = loopTrack;
+    this.loopTrack = this.addLoopTrack(this.filter, this.setup.loops);
+    this.loopTrack.setLoop(this.loop);
   }
 
   stopSound() {
@@ -276,27 +292,11 @@ class LoopInstrument extends Instrument {
   }
 
   connect(output) {
-    this.output = output;
-
-    const loopTrack = this.loopTrack;
-    if (loopTrack)
-      loopTrack.connect(output);
+    this.filter.connect(output);
   }
 
   disconnect(output) {
-    if (output === this.output) {
-      this.output = null;
-
-      const loopTrack = this.loopTrack;
-      if (loopTrack)
-        loopTrack.disconnect(output);
-    }
-  }
-
-  setLoopIndex(index) {
-    this.loopIndex = index;
-    this.loopTrack.setLoop(index);
-    this.environment.sendControl('select', index);
+    this.filter.disconnect(output);
   }
 
   set foreground(value) {
@@ -308,17 +308,12 @@ class LoopInstrument extends Instrument {
     const accX = data[0];
     const accY = data[1];
     const accZ = data[2];
-
     const pitch = 2 * Math.atan2(accY, Math.sqrt(accZ * accZ + accX * accX)) / Math.PI;
     const roll = -2 * Math.atan2(accX, Math.sqrt(accY * accY + accZ * accZ)) / Math.PI;
-    const cutoff = 0.5 + Math.max(-0.8, Math.min(0.8, (accZ / 9.81))) / 1.6;
+    const cutoff = Math.max(0, Math.min(1, 0.5 + accZ / (9.81 * 1.6))); // ±0.8 * 9.81 --> 0...1
 
-    if (Math.abs(cutoff - this.lastCutoff) > 0.01) {
-      this.lastCutoff = cutoff;
-
-      this.loopTrack.setCutoff(cutoff);
-      this.environment.sendControl('cutoff', cutoff);
-    }
+    if (Math.abs(cutoff - this.cutoff) > 0.01)
+      this.setCutoff(cutoff, true);
   }
 }
 

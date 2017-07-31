@@ -4,7 +4,6 @@ import Beacon from '../../shared/services/client/Beacon';
 import ChooserView from './ChooserView';
 import LoopPlayer from '../shared/instruments/LoopPlayer';
 import instrumentFactory from '../shared/instruments/instrumentFactory';
-import Mixer from './Mixer';
 import rawMixSetup from '../../shared/setup';
 
 const client = soundworks.client;
@@ -64,7 +63,7 @@ class PlayerExperience extends soundworks.Experience {
     this.onPlayerDeactivate = this.onPlayerDeactivate.bind(this);
     this.onPlayerGroup = this.onPlayerGroup.bind(this);
 
-    this.onInstrumentControl = this.onInstrumentControl.bind(this);
+    this.onPlayerControl = this.onPlayerControl.bind(this);
     this.onBeaconRanging = this.onBeaconRanging.bind(this);
   }
 
@@ -88,7 +87,7 @@ class PlayerExperience extends soundworks.Experience {
       this.receive('player:activate', this.onPlayerActivate);
       this.receive('player:deactivate', this.onPlayerDeactivate);
       this.receive('player:group', this.onPlayerGroup);
-      this.receive('instrument:control', this.onInstrumentControl);
+      this.receive('player:control', this.onPlayerControl);
     });
 
     const mixSetup = this.audioBufferManager.data;
@@ -98,13 +97,10 @@ class PlayerExperience extends soundworks.Experience {
     this.instrumentEnv = {
       screenContainer: this.view.$el,
       motionInput: this.motionInput,
-      sendControl: this.sendIntrumentControl().bind(this),
+      sendParam: this.sendIntrumentControl().bind(this),
       metricScheduler: this.metricScheduler,
       loopPlayer: loopPlayer,
     };
-
-    //this.mixer = new Mixer(this.metricScheduler);
-    //this.mixer.connect(audioContext.destination);
 
     // create instruments
     const instrumentList = Object.keys(mixSetup.instruments);
@@ -116,12 +112,9 @@ class PlayerExperience extends soundworks.Experience {
       const instrumentId = instrumentList[i];
       const instrumentSetup = mixSetup.instruments[instrumentId];
       const instrument = instrumentFactory.createInstrument(this.instrumentEnv, instrumentSetup.type, instrumentSetup);
-      //this.mixer.createChannel(i, instrument);
       instrument.connect(audioContext.destination);
       this.instruments[i] = instrument;
     }
-
-    this.initiateBeaconing();
   }
 
   showChooser() {
@@ -204,16 +197,9 @@ class PlayerExperience extends soundworks.Experience {
 
   stopInstruments() {
     for (let instrument of this.instruments) {
-      instrument.visible = false;
-      instrument.active = false;
+      instrument.hide();
+      instrument.stop();
     }
-  }
-
-  initiateBeaconing() {
-    // this.beacon.minor = 999;
-    // this.beacon.addListener(this.onBeaconRanging);
-    // this.beacon.startAdvertising();
-    // this.beacon.startRanging();
   }
 
   startBeaconing(playerId) {
@@ -236,15 +222,12 @@ class PlayerExperience extends soundworks.Experience {
 
     const mixSetup = this.audioBufferManager.data;
     const instrument = this.instruments[playerId];
-    instrument.visible = true;
-    instrument.active = true;
+    instrument.show();
+    instrument.start();
     this.instrument = instrument;
 
     this.addHomeButton(instrument);
-    //this.mixer.setGain(playerId, 1);
-
     this.setGroupColor();
-
     this.startBeaconing(playerId);
   }
 
@@ -267,7 +250,7 @@ class PlayerExperience extends soundworks.Experience {
   }
 
   sendIntrumentControl() {
-    return (name, value) => this.send('instrument:control', this.playerId, name, value);
+    return (name, value) => this.send('player:control', this.playerId, name, value);
   }
 
   onPlayerAvailable(playerId) {
@@ -280,21 +263,20 @@ class PlayerExperience extends soundworks.Experience {
     this.updateChooser();
   }
 
-  onPlayerActivate(playerIds) {
-    for (let id of playerIds) {
-      //this.mixer.setAutomation(id, 1, 0.05);
-
-      const instrument = this.instruments[id];
-      instrument.active = true;
+  onPlayerActivate(playerIds, playerStates) {
+    for (let i = 0; i < playerIds.length; i++) {
+      const playerId = playerIds[i];
+      const state = playerStates[i];
+      const instrument = this.instruments[playerId];
+      instrument.setState(state);
+      instrument.start();
     }
   }
 
   onPlayerDeactivate(playerIds) {
     for (let id of playerIds) {
-      //this.mixer.setAutomation(id, 0, 0.05);
-
       const instrument = this.instruments[id];
-      instrument.active = false;
+      instrument.stop();
     }
   }
 
@@ -324,15 +306,13 @@ class PlayerExperience extends soundworks.Experience {
     this.groupId = groupId;
 
     const instrument = this.instrument;
-    if (instrument) {
-      instrument.updateControl();
+    if (instrument)
       this.setGroupColor(groupId);
-    }
   }
 
-  onInstrumentControl(playerId, name, value) {
+  onPlayerControl(playerId, name, value) {
     const instrument = this.instruments[playerId];
-    instrument.setControl(name, value);
+    instrument.setParam(name, value);
   }
 
   onBeaconRanging(pluginResults) {

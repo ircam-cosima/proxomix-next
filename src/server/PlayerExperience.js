@@ -9,7 +9,7 @@ const numGroups = numInstruments / 2;
 
 const maxPlayersPerGroup = 8;
 const houskeepingPeriod = 1;
-const playerOutTime = 3;
+const playerOutTime = 2;
 
 const innerDistance = 1;
 const outerDistance = 1.5;
@@ -158,7 +158,7 @@ class Group {
     const numCandidates = merge.players.size;
     const numMigrants = Math.min(availablePlaces, numCandidates);
     const cadidates = merge.players;
-    const residents = keep.players; 
+    const residents = keep.players;
     const migrants = new Set();
     const iter = cadidates.values();
 
@@ -225,6 +225,8 @@ class Player {
     this.group = null;
     this.age = 0;
 
+    this.state = {};
+
     this.innerCircle = new Set();
     this.outerGroupCircle = new Set();
     this.pendingGroup = null;
@@ -257,21 +259,20 @@ class Player {
     this.pendingGroup = null;
 
     this.client = null;
+    this.state = {};
 
     const experience = this.experience;
     experience.activePlayerIds.delete(this.id);
-    experience.availablePlayerIds.add(this.id);
-    experience.broadcast('player', null, 'player:available', this.id);
 
-    // setTimeout(() => {
-    //   experience.availablePlayerIds.add(this.id);
-    //   experience.broadcast('player', null, 'player:available', this.id);
-    // }, playerOutTime * 1000);
+    setTimeout(() => {
+      experience.availablePlayerIds.add(this.id);
+      experience.broadcast('player', null, 'player:available', this.id);
+    }, playerOutTime * 1000);
   }
 
   addNeighbour(neighbour) {
     const experience = this.experience;
-    experience.send(this.client, 'player:activate', [neighbour.id]);
+    experience.send(this.client, 'player:activate', [neighbour.id], [neighbour.state]);
   }
 
   removeNeighbour(neighbour) {
@@ -280,27 +281,32 @@ class Player {
   }
 
   addNeighbours(neighbours) {
-    const array = [];
+    const ids = [];
+    const states = [];
 
     for (let n of neighbours) {
-      if (n.id !== this.id)
-        array.push(n.id);
+      if (n.id !== this.id) {
+        ids.push(n.id);
+        states.push(n.state);
+      }
     }
 
     const experience = this.experience;
-    experience.send(this.client, 'player:activate', array);
+    experience.send(this.client, 'player:activate', ids, states);
   }
 
   removeNeighbours(neighbours) {
-    const array = [];
+    const ids = [];
+    const states = [];
 
     for (let n of neighbours) {
-      if (n.id !== this.id)
-        array.push(n.id);
+      if (n.id !== this.id) {
+        ids.push(n.id);
+      }
     }
 
     const experience = this.experience;
-    experience.send(this.client, 'player:deactivate', array);
+    experience.send(this.client, 'player:deactivate', ids);
   }
 
   clearBeacons() {
@@ -340,10 +346,6 @@ function groupCircleSort(player, other) {
   return otherValue - playerValue;
 }
 
-let groupA = null;
-let groupB = null;
-let players = [];
-
 // server-side 'player' experience.
 export default class PlayerExperience extends Experience {
   constructor(clientType) {
@@ -381,33 +383,7 @@ export default class PlayerExperience extends Experience {
   }
 
   start() {
-    this._onGroupHouskeeping();
-  }
-
-  fakeGroups(playerId) {
-    const player = this.players[playerId];
-    players.push(player);
-
-    if (this.activePlayerIds.size === 2) {
-      const p = players[0];
-      const q = players[1];
-      groupA = this.createGroup(p, q);
-    } else if (this.activePlayerIds.size === 3) {
-      const p = players[2];
-      groupA.add(p);
-    } else if (this.activePlayerIds.size === 5) {
-      const p = players[3];
-      const q = players[4];
-      groupB = this.createGroup(p, q);
-
-      setTimeout(() => {
-        groupB.merge(groupA);
-      }, 5000);
-
-      setTimeout(() => {
-        groupA.remove(players[1]);
-      }, 8000);
-    }
+    //this._onGroupHouskeeping();
   }
 
   /*
@@ -424,7 +400,7 @@ export default class PlayerExperience extends Experience {
     this.receive(client, 'player:id', this._onPlayerId(client));
     this.receive(client, 'player:exit', this._onPlayerExit(client));
     this.receive(client, 'player:beacons', this._onPlayerBeacons(client));
-    this.receive(client, 'instrument:control', this._onInstrumentControl(client));
+    this.receive(client, 'player:control', this._onPlayerControl(client));
   }
 
   exit(client) {
@@ -432,7 +408,7 @@ export default class PlayerExperience extends Experience {
 
     const playerId = client.activities[this.id].playerId;
     if (playerId !== undefined)
-      this.desactivatePlayer(client, playerId);
+      this.deactivatePlayer(client, playerId);
   }
 
   activatePlayer(client, playerId) {
@@ -442,11 +418,20 @@ export default class PlayerExperience extends Experience {
     client.activities[this.id].playerId = playerId;
     this.send(client, 'player:confirm', playerId);
 
-
-    // this.fakeGroups(playerId);
+    // debug: add all players to one group
+    const activelayerIds = Array.from(this.activePlayerIds);
+    const activeGroups = Array.from(this.activeGroups);
+    const numPlayers = activelayerIds.length;
+    if (numPlayers === 2) {
+      const iter = this.activePlayerIds.values();
+      this.createGroup(this.players[iter.next().value], this.players[iter.next().value]);
+    } else if (numPlayers > 2) {
+      const iter = this.activeGroups.values();
+      iter.next().value.add(player);
+    }
   }
 
-  desactivatePlayer(client, playerId) {
+  deactivatePlayer(client, playerId) {
     if (this.activePlayerIds.has(playerId)) {
       const player = this.players[playerId];
       player.reset();
@@ -580,7 +565,7 @@ export default class PlayerExperience extends Experience {
 
   _onPlayerExit(client) {
     return (playerId) => {
-      this.desactivatePlayer(client, playerId);
+      this.deactivatePlayer(client, playerId);
     };
   }
 
@@ -604,14 +589,18 @@ export default class PlayerExperience extends Experience {
     };
   }
 
-  _onInstrumentControl(client) {
+  _onPlayerControl(client) {
     return (playerId, name, value) => {
       const player = this.players[playerId];
 
-      if (player.group) {
-        for (let p of player.group.players) {
-          if (p !== player)
-            this.send(p.client, 'instrument:control', playerId, name, value);
+      if (player) {
+        player.state[name] = value;
+
+        if (player.group) {
+          for (let p of player.group.players) {
+            if (p !== player)
+              this.send(p.client, 'player:control', playerId, name, value);
+          }
         }
       }
     };

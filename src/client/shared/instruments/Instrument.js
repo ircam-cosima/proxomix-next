@@ -7,13 +7,12 @@ class Instrument {
     this.environment = environment;
     this.setup = setup;
 
-    this.foreground = 'white';
-
     this._isVisible = false;
     this._isActive = false;
 
     this.view = null;
     this.touchSurface = null;
+    this.foreground = 'white';
   }
 
   /**
@@ -80,24 +79,23 @@ class Instrument {
   }
 
   addMetronome(callback, numBeats = 4, metricDiv = 4, startPosition = 0) {
-    let metricScheduler = this.environment.metricScheduler;
-    metricScheduler.addMetronome(callback, numBeats, metricDiv, 1, startPosition, true);
+    this.environment.metricScheduler.addMetronome(callback, numBeats, metricDiv, 1, startPosition, true);
   }
 
   removeMetronome(callback) {
-    let metricScheduler = this.environment.metricScheduler;
-    metricScheduler.removeMetronome(callback);
+    this.environment.metricScheduler.removeMetronome(callback);
   }
 
-  addLoopTrack(loopDescriptions) {
-    const loopPlayer = this.environment.loopPlayer;
-    const loopTrack = loopPlayer.addLoopTrack(loopDescriptions);
-    return loopTrack;
+  addLoopTrack(output, loops) {
+    return this.environment.loopPlayer.addLoopTrack(output, loops);
+  } 
+
+  removeLoopTrack(track) {
+    this.environment.loopPlayer.removeLoopTrack(track);
   }
 
-  removeLoopTrack(loopDescriptions) {
-    const loopPlayer = this.environment.loopPlayer;
-    loopPlayer.removeLoopTrack(loopDescriptions);
+  sendParam(name, value) {
+    this.environment.sendParam(name, value);
   }
 
   get audioContext() {
@@ -117,8 +115,7 @@ class Instrument {
    * Instrument Interface
    * (to be implemented by the instrument)
    */
-  setControl(name, value) {}
-  updateControl() {}
+  setParam(name, value) {}
   showScreen() {}
   hideScreen() {}
   startSensors() {}
@@ -133,39 +130,45 @@ class Instrument {
    * External Instrument API
    * (used to control instruments)
    */
-  get visible() {
-    return this._isVisible;
+  setState(obj) {
+    for(let key in obj)
+      this.setParam(key, obj[key]);
   }
 
-  set visible(value) {
+  show() {
     const environment = this.environment;
-    const makeVisible = !!value;
 
-    if (environment.screenContainer && makeVisible !== this._isVisible) {
-      if (makeVisible)
-        this.showScreen();
-      else
-        this.hideScreen();
-
-      this._isVisible = makeVisible;
+    if (environment.screenContainer && !this._isVisible) {
+      this.showScreen();
+      this._isVisible = true;
     }
   }
 
-  get active() {
-    return this._isActive;
+  hide() {
+    const environment = this.environment;
+
+    if (environment.screenContainer && this._isVisible) {
+      this.hideScreen();
+      this._isVisible = false;
+    }
   }
 
-  set active(value) {
+  start() {
     const environment = this.environment;
-    const makeActive = !!value;
 
-    if (makeActive !== this._isActive) {
-      if (makeActive)
-        this.startSound();
-      else
-        this.stopSound();
+    if (!this._isActive) {
+      this.startSound();
+      this._isActive = true;
+    }
+  }
 
-      this._isActive = makeActive;
+  stop(value) {
+    const environment = this.environment;
+
+    if (this._isActive) {
+      this.stopSound();
+      this.resetState();
+      this._isActive = false;
     }
   }
 }
