@@ -1,6 +1,5 @@
 import * as soundworks from 'soundworks/client';
 import { decibelToLinear } from 'soundworks/utils/math';
-import instrumentFactory from './instrumentFactory';
 import Instrument from './Instrument';
 
 const template = `
@@ -635,7 +634,5 @@ class StepSeqInstrument extends Instrument {
       this.setCutoff(cutoff, true);
   }
 }
-
-instrumentFactory.addCtor('stepseq', StepSeqInstrument);
 
 export default StepSeqInstrument;

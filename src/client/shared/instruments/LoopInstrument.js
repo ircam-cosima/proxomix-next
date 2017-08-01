@@ -1,4 +1,3 @@
-import instrumentFactory from './instrumentFactory';
 import Instrument from './Instrument';
 import { CanvasView } from 'soundworks/client';
 import CursorRenderer from './circular-renderers/CursorRenderer';
@@ -316,7 +315,5 @@ class LoopInstrument extends Instrument {
       this.setCutoff(cutoff, true);
   }
 }
-
-instrumentFactory.addCtor('loop', LoopInstrument);
 
 export default LoopInstrument;
