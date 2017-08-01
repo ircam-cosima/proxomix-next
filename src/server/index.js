@@ -2,6 +2,7 @@ import 'source-map-support/register'; // enable sourcemaps in node
 import path from 'path';
 import * as soundworks from 'soundworks/server';
 import PlayerExperience from './PlayerExperience';
+import TuttiExperience from './TuttiExperience';
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
@@ -47,6 +48,8 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
   return data;
 });
 
-const experience = new PlayerExperience('player');
+
+const playerExperience = new PlayerExperience();
+const tuttiExperience = new TuttiExperience(playerExperience);
 
 soundworks.server.start();
