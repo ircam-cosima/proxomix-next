@@ -8,7 +8,6 @@ export default class TuttiExperience extends Experience {
 
     // services
     this.audioBufferManager = this.require('audio-buffer-manager');
-    this.checkin = this.require('checkin');
     this.sync = this.require('sync');
     this.metricScheduler = this.require('metric-scheduler');
   }
@@ -23,13 +22,13 @@ export default class TuttiExperience extends Experience {
   _onRequest(client) {
     const playerExperience = this.playerExperience;
     const players = playerExperience.players;
-    const activePlayerIds = playerExperience.activePlayerIds;
+    const activeIds = playerExperience.activeIds;
 
     return () => {
       const ids = [];
       const states = [];
 
-      for (let id of activePlayerIds) {
+      for (let id of activeIds) {
         const player = players[id];
         ids.push(id);
         states.push(player.state);

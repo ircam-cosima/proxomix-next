@@ -32,7 +32,7 @@ class TuttiExperience extends soundworks.Experience {
     });
 
     this.instruments = [];
-    this.activePlayerIds = new Set();
+    this.activeIds = new Set();
 
     this.chooserView = null;
 
@@ -81,40 +81,40 @@ class TuttiExperience extends soundworks.Experience {
     for (let prop in rawMixSetup.instruments)
       iconList.push(rawMixSetup.instruments[prop].icon.chooser);
 
-    const chooserView = new ChooserView(iconList, this.activePlayerIds);
+    const chooserView = new ChooserView(iconList, this.activeIds);
     chooserView.render();
     chooserView.show();
     chooserView.appendTo(this.view.$el);
     this.chooserView = chooserView;
   }
 
-  onAcknowledge(playerIds, playerStates) {
-    for (let i = 0; i < playerIds.length; i++) {
-      const id = playerIds[i];
-      const state = playerStates[i];
+  onAcknowledge(ids, states) {
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const state = states[i];
       this.onActivate(id, state);
     }
   }
 
-  onActivate(playerId, playerState) {
-    const instrument = this.instruments[playerId];
-    instrument.setState(playerState);
+  onActivate(id, state) {
+    const instrument = this.instruments[id];
+    instrument.setState(state);
     instrument.start();
 
-    this.activePlayerIds.add(playerId);
+    this.activeIds.add(id);
     this.chooserView.update();
   }
 
-  onDeactivate(playerId) {
-    const instrument = this.instruments[playerId];
+  onDeactivate(id) {
+    const instrument = this.instruments[id];
     instrument.stop();
 
-    this.activePlayerIds.delete(playerId);
+    this.activeIds.delete(id);
     this.chooserView.update();
   }
 
-  onControl(playerId, name, value) {
-    const instrument = this.instruments[playerId];
+  onControl(id, name, value) {
+    const instrument = this.instruments[id];
     instrument.setParam(name, value);
   }
 }
