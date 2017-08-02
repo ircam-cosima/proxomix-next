@@ -23,7 +23,7 @@ class TuttiExperience extends soundworks.Experience {
   constructor(assetsDomain) {
     super();
 
-    this.platform = this.require('platform', { features: ['web-audio'], showDialog: false });
+    this.platform = this.require('platform', { features: ['web-audio'] });
     this.metricScheduler = this.require('metric-scheduler');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
