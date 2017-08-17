@@ -37,23 +37,15 @@ class Segment {
 }
 
 class SegmentTrack {
-  constructor(segmentedLoops, transitionTime = 0.05) {
+  constructor(output, segmentedLoops, transitionTime = 0.05) {
     this.src = audioContext.createBufferSource();
 
+    this.output = output;
     this.segmentedLoops = segmentedLoops;
     this.transitionTime = transitionTime;
 
     this.loopIndex = 0;
     this.discontinue = true;
-
-    this.minCutoffFreq = 5;
-    this.maxCutoffFreq = audioContext.sampleRate / 2;
-    this.logCutoffRatio = Math.log(this.maxCutoffFreq / this.minCutoffFreq);
-
-    const cutoff = audioContext.createBiquadFilter();
-    cutoff.type = 'lowpass';
-    cutoff.frequency.value = this.maxCutoffFreq;
-    this.cutoff = cutoff;
 
     this.src = null;
     this.env = null;
@@ -89,7 +81,7 @@ class SegmentTrack {
       }
 
       const env = audioContext.createGain();
-      env.connect(this.cutoff);
+      env.connect(this.output);
 
       if (transitionTime > 0) {
         env.gain.value = 0;
@@ -137,22 +129,9 @@ class SegmentTrack {
     }
   }
 
-  setCutoff(value) {
-    const cutoffFreq = this.minCutoffFreq * Math.exp(this.logCutoffRatio * value);
-    this.cutoff.frequency.value = cutoffFreq;
-  }
-
   setLoop(value) {
     this.loopIndex = value;
     this.discontinue = true;
-  }
-
-  connect(node) {
-    this.cutoff.connect(node);
-  }
-
-  disconnect(node) {
-    this.cutoff.disconnect(node);
   }
 }
 
@@ -210,7 +189,7 @@ class LoopPlayer extends audio.TimeEngine {
     return metricPosition + this.measureLength;
   }
 
-  addLoopTrack(loops) {
+  addLoopTrack(output, loops) {
     const segmentedLoops = [];
 
     for (let loop of loops) {
@@ -224,15 +203,15 @@ class LoopPlayer extends audio.TimeEngine {
       segmentedLoops.push(segments);
     }
 
-    const segmentTrack = new SegmentTrack(segmentedLoops, this.transitionTime);
+    const segmentTrack = new SegmentTrack(output, segmentedLoops, this.transitionTime);
     this.segmentTracks.add(segmentTrack);
 
     return segmentTrack;
   }
 
-  removeLoopTrack(segmentTrack) {
-    segmentTrack.stopSegment();
-    this.segmentTracks.delete(segmentTrack);
+  removeLoopTrack(track) {
+    track.stopSegment();
+    this.segmentTracks.delete(track);
   }
 
   destroy() {

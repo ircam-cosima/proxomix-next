@@ -1,3 +1,6 @@
+import LoopInstrument from './LoopInstrument';
+import StepSeqInstrument from './StepSeqInstrument';
+
 class InstrumentFactory {
   constructor(options) {
     this.ctors = new Map();
@@ -13,9 +16,12 @@ class InstrumentFactory {
     if (!ctor)
       throw new Error(`Cannot find instrument class '${name}'`);
 
-    const instrument = new ctor(environment, options);
-    return instrument;
+    return new ctor(environment, options);
   }
 }
 
-export default new InstrumentFactory();
+const instrumentFactory = new InstrumentFactory();
+instrumentFactory.addCtor('loop', LoopInstrument);
+instrumentFactory.addCtor('stepseq', StepSeqInstrument);
+
+export default instrumentFactory;

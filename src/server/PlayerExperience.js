@@ -1,6 +1,8 @@
 import { Experience } from 'soundworks/server';
 import mixSetup from '../shared/setup';
 
+const DEBUG = false;
+
 const instrumentList = Object.keys(mixSetup.instruments);
 const numInstruments = instrumentList.length;
 const tempo = mixSetup.common.tempo;
@@ -9,7 +11,7 @@ const numGroups = numInstruments / 2;
 
 const maxPlayersPerGroup = 8;
 const houskeepingPeriod = 1;
-const playerOutTime = 3;
+const playerOutTime = 2;
 
 const innerDistance = 1;
 const outerDistance = 1.5;
@@ -33,15 +35,6 @@ function distanceToRssi(distance) {
 }
 
 const maxAge = 1000;
-
-function getIdArray(s) {
-  const a = [];
-
-  for (let e of s)
-    a.push(e.id);
-
-  return a;
-}
 
 class Group {
   constructor(experience, id) {
@@ -225,6 +218,8 @@ class Player {
     this.group = null;
     this.age = 0;
 
+    this.state = {};
+
     this.innerCircle = new Set();
     this.outerGroupCircle = new Set();
     this.pendingGroup = null;
@@ -241,9 +236,9 @@ class Player {
       this.beacons[i] = -Infinity;
 
     const experience = this.experience;
-    experience.activePlayerIds.add(this.id);
-    experience.availablePlayerIds.delete(this.id);
-    experience.broadcast('player', client, 'player:unavailable', this.id);
+    experience.activeIds.add(this.id);
+    experience.availableIds.delete(this.id);
+    experience.broadcast('player', client, 'unavailable', this.id);
   }
 
   reset() {
@@ -257,50 +252,54 @@ class Player {
     this.pendingGroup = null;
 
     this.client = null;
+    this.state = {};
 
     const experience = this.experience;
-    experience.activePlayerIds.delete(this.id);
-    experience.availablePlayerIds.add(this.id);
-    experience.broadcast('player', null, 'player:available', this.id);
+    experience.activeIds.delete(this.id);
 
-    // setTimeout(() => {
-    //   experience.availablePlayerIds.add(this.id);
-    //   experience.broadcast('player', null, 'player:available', this.id);
-    // }, playerOutTime * 1000);
+    setTimeout(() => {
+      experience.availableIds.add(this.id);
+      experience.broadcast('player', null, 'available', this.id);
+    }, playerOutTime * 1000);
   }
 
   addNeighbour(neighbour) {
     const experience = this.experience;
-    experience.send(this.client, 'player:activate', [neighbour.id]);
+    experience.send(this.client, 'activate', [neighbour.id], [neighbour.state]);
   }
 
   removeNeighbour(neighbour) {
     const experience = this.experience;
-    experience.send(this.client, 'player:deactivate', [neighbour.id]);
+    experience.send(this.client, 'deactivate', [neighbour.id]);
   }
 
   addNeighbours(neighbours) {
-    const array = [];
+    const ids = [];
+    const states = [];
 
     for (let n of neighbours) {
-      if (n.id !== this.id)
-        array.push(n.id);
+      if (n.id !== this.id) {
+        ids.push(n.id);
+        states.push(n.state);
+      }
     }
 
     const experience = this.experience;
-    experience.send(this.client, 'player:activate', array);
+    experience.send(this.client, 'activate', ids, states);
   }
 
   removeNeighbours(neighbours) {
-    const array = [];
+    const ids = [];
+    const states = [];
 
     for (let n of neighbours) {
-      if (n.id !== this.id)
-        array.push(n.id);
+      if (n.id !== this.id) {
+        ids.push(n.id);
+      }
     }
 
     const experience = this.experience;
-    experience.send(this.client, 'player:deactivate', array);
+    experience.send(this.client, 'deactivate', ids);
   }
 
   clearBeacons() {
@@ -320,12 +319,12 @@ class Player {
     this.group = group;
     this.age = 0;
 
-    this.experience.send(this.client, 'player:group', group.id);
+    this.experience.send(this.client, 'group', group.id);
   }
 
   resetGroup(group) {
     this.group = null;
-    this.experience.send(this.client, 'player:group');
+    this.experience.send(this.client, 'group');
   }
 
   incrAge() {
@@ -340,33 +339,29 @@ function groupCircleSort(player, other) {
   return otherValue - playerValue;
 }
 
-let groupA = null;
-let groupB = null;
-let players = [];
-
 // server-side 'player' experience.
 export default class PlayerExperience extends Experience {
-  constructor(clientType) {
-    super(clientType);
+  constructor() {
+    super('player');
 
     // services
     this.audioBufferManager = this.require('audio-buffer-manager');
-    this.checkin = this.require('checkin');
     this.sync = this.require('sync');
     this.metricScheduler = this.require('metric-scheduler', { tempo: tempo, tempoUnit: tempoUnit });
 
     this.innerRssi = distanceToRssi(innerDistance);
     this.outerRssi = distanceToRssi(outerDistance);
 
-    this.players = [];
-    this.activePlayerIds = new Set();
-    this.availablePlayerIds = new Set();
-
-    this.activeGroups = new Set();
     this.availableGroups = new Set();
+    this.activeGroups = new Set();
+
+    this.availableIds = new Set();
+    this.activeIds = new Set();
+
+    this.players = [];
 
     for (let i = 0; i < numInstruments; i++) {
-      this.availablePlayerIds.add(i);
+      this.availableIds.add(i);
 
       const player = new Player(this, i);
       this.players.push(player);
@@ -381,77 +376,60 @@ export default class PlayerExperience extends Experience {
   }
 
   start() {
-    this._onGroupHouskeeping();
+    if (!DEBUG)
+      this._onGroupHouskeeping();
   }
-
-  fakeGroups(playerId) {
-    const player = this.players[playerId];
-    players.push(player);
-
-    if (this.activePlayerIds.size === 2) {
-      const p = players[0];
-      const q = players[1];
-      groupA = this.createGroup(p, q);
-    } else if (this.activePlayerIds.size === 3) {
-      const p = players[2];
-      groupA.add(p);
-    } else if (this.activePlayerIds.size === 5) {
-      const p = players[3];
-      const q = players[4];
-      groupB = this.createGroup(p, q);
-
-      setTimeout(() => {
-        groupB.merge(groupA);
-      }, 5000);
-
-      setTimeout(() => {
-        groupA.remove(players[1]);
-      }, 8000);
-    }
-  }
-
-  /*
-   * request --> acknowledge(availablePlayerIds, activePlayerIds)
-   * id(playerId) --> confirm(playerId) ->> enter(playerId)
-   * exit(plaeryerId) ->> exit(playerId)
-   *
-   */
 
   enter(client) {
     super.enter(client);
 
-    this.receive(client, 'player:request', this._onPlayerRequest(client));
-    this.receive(client, 'player:id', this._onPlayerId(client));
-    this.receive(client, 'player:exit', this._onPlayerExit(client));
-    this.receive(client, 'player:beacons', this._onPlayerBeacons(client));
-    this.receive(client, 'instrument:control', this._onInstrumentControl(client));
+    this.receive(client, 'request', this._onRequest(client));
+    this.receive(client, 'request-id', this._onRequestId(client));
+    this.receive(client, 'exit', this._onExit(client));
+    this.receive(client, 'beacons', this._onBeacons(client));
+    this.receive(client, 'control', this._onControl(client));
   }
 
   exit(client) {
     super.exit(client);
 
-    const playerId = client.activities[this.id].playerId;
-    if (playerId !== undefined)
-      this.desactivatePlayer(client, playerId);
+    const id = client.activities[this.id].id;
+
+    if (id !== undefined)
+      this.deactivatePlayer(client, id);
   }
 
-  activatePlayer(client, playerId) {
-    const player = this.players[playerId];
+  activatePlayer(client, id) {
+    const player = this.players[id];
     player.init(client);
 
-    client.activities[this.id].playerId = playerId;
-    this.send(client, 'player:confirm', playerId);
+    client.activities[this.id].id = id;
+    this.send(client, 'acknowledge-id', id);
+    this.broadcast('tutti', null, 'activate', player.id, player.state);
 
-
-    // this.fakeGroups(playerId);
+    // debug: add all players to the same group
+    if (DEBUG) {
+      const activePlayerIds = Array.from(this.activeIds);
+      const activeGroups = Array.from(this.activeGroups);
+      const numPlayers = activePlayerIds.length;
+      if (numPlayers === 2) {
+        const iter = this.activeIds.values();
+        this.createGroup(this.players[iter.next().value], this.players[iter.next().value]);
+      } else if (numPlayers > 2) {
+        const iter = this.activeGroups.values();
+        iter.next().value.add(player);
+      }
+    }
   }
 
-  desactivatePlayer(client, playerId) {
-    if (this.activePlayerIds.has(playerId)) {
-      const player = this.players[playerId];
+  deactivatePlayer(client, id) {
+    if (this.activeIds.has(id)) {
+      const player = this.players[id];
+
+      this.broadcast('tutti', null, 'deactivate', player.id);
       player.reset();
 
-      client.activities[this.id].playerId = undefined;
+      client.activities[this.id].id = undefined;
     }
   }
 
@@ -467,24 +445,23 @@ export default class PlayerExperience extends Experience {
     return group;
   }
 
-  _initPlayerCircles() {
+  _initCircles() {
     // clear player's circles
-
-    for (let playerId of this.activePlayerIds) {
-      const player = this.players[playerId];
+    for (let id of this.activeIds) {
+      const player = this.players[id];
       player.clearCircles();
     }
 
-    // fill plyer circles
-    for (let playerId of this.activePlayerIds) {
-      const player = this.players[playerId];
+    // fill player circles
+    for (let id of this.activeIds) {
+      const player = this.players[id];
       const playerBeacons = player.beacons;
 
-      for (let otherId of this.activePlayerIds) {
-        if (playerId < otherId) {
+      for (let otherId of this.activeIds) {
+        if (id < otherId) {
           const other = this.players[otherId];
           const otherBeacons = other.beacons;
-          const meanRssi = 0.5 * (playerBeacons[otherId] + otherBeacons[playerId]); // TODO: check if min or max is better
+          const meanRssi = 0.5 * (playerBeacons[otherId] + otherBeacons[id]); // TODO: check if min or max is better
 
           if (meanRssi >= this.outerRssi) {
             if (player.group && player.group === other.group) {
@@ -520,8 +497,8 @@ export default class PlayerExperience extends Experience {
   }
 
   _extendGroups() {
-    for (let playerId of this.activePlayerIds) {
-      const player = this.players[playerId];
+    for (let id of this.activeIds) {
+      const player = this.players[id];
 
       if (!player.group && !player.pendingGroup) {
         for (let neighbour of player.innerCircle) {
@@ -537,8 +514,8 @@ export default class PlayerExperience extends Experience {
   }
 
   _createGroups() {
-    for (let playerId of this.activePlayerIds) {
-      const player = this.players[playerId];
+    for (let id of this.activeIds) {
+      const player = this.players[id];
 
       if (!player.group && !player.pendingGroup) {
         for (let neighbour of player.innerCircle) {
@@ -554,7 +531,7 @@ export default class PlayerExperience extends Experience {
   }
 
   _onGroupHouskeeping() {
-    this._initPlayerCircles();
+    this._initCircles();
     this._reduceGroups();
     this._mergeGroups();
     this._extendGroups();
@@ -563,57 +540,55 @@ export default class PlayerExperience extends Experience {
     setTimeout(this._onGroupHouskeeping, houskeepingPeriod * 1000);
   }
 
-  _onPlayerRequest(client) {
-    return () => {
-      const availablePlayerIdArray = Array.from(this.availablePlayerIds);
-      this.send(client, 'player:acknowledge', availablePlayerIdArray);
+  _onRequest(client) {
+    return () => this.send(client, 'acknowledge', Array.from(this.availableIds));
+  }
+
+  _onRequestId(client) {
+    return (id) => {
+      if (this.availableIds.has(id))
+        this.activatePlayer(client, id);
     };
   }
 
-  _onPlayerId(client) {
-    return (playerId) => {
-      if (this.availablePlayerIds.has(playerId)) {
-        this.activatePlayer(client, playerId);
-      }
-    };
+  _onExit(client) {
+    return (id) => this.deactivatePlayer(client, id);
   }
 
-  _onPlayerExit(client) {
-    return (playerId) => {
-      this.desactivatePlayer(client, playerId);
-    };
-  }
-
-  _onPlayerBeacons(client) {
-    return (playerId, data) => {
-      const player = this.players[playerId];
+  _onBeacons(client) {
+    return (id, data) => {
+      const player = this.players[id];
       const beacons = player.beacons;
       player.clearBeacons();
 
-      console.log(playerId, data);
+      console.log(id, data);
 
       for (let i = 0; i < data.length; i += 2) {
-        const otherPlayerId = data[i];
+        const otherId = data[i];
         let beaconRssi = -Infinity;
 
-        if (this.activePlayerIds.has(otherPlayerId))
+        if (this.activeIds.has(otherId))
           beaconRssi = data[i + 1];
 
-        beacons[otherPlayerId] = beaconRssi;
+        beacons[otherId] = beaconRssi;
       }
     };
   }
 
-  _onInstrumentControl(client) {
-    return (playerId, name, value) => {
-      const player = this.players[playerId];
+  _onControl(client) {
+    return (id, name, value) => {
+      const player = this.players[id];
+
+      player.state[name] = value;
 
       if (player.group) {
         for (let p of player.group.players) {
           if (p !== player)
-            this.send(p.client, 'instrument:control', playerId, name, value);
+            this.send(p.client, 'control', id, name, value);
         }
       }
+
+      this.broadcast('tutti', null, 'control', id, name, value);
     };
   }
 }

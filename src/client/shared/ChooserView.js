@@ -5,7 +5,7 @@ const template = `
 `;
 
 class ChooserView extends soundworks.View {
-  constructor(icons, activeButtons, buttonCallback) {
+  constructor(icons, activeButtons, buttonCallback = function() {}) {
     super(template, {
       icons: icons,
     }, {}, {});
@@ -20,10 +20,10 @@ class ChooserView extends soundworks.View {
   update() {
     const activeButtons = this.activeButtons;
 
-    for(let i = 0; i < this.buttons.length; i++) {
+    for (let i = 0; i < this.buttons.length; i++) {
       const button = this.buttons[i];
 
-      if(activeButtons.has(i))
+      if (activeButtons.has(i))
         button.style.opacity = 1;
       else
         button.style.opacity = 0.33;

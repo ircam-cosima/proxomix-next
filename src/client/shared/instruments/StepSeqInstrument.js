@@ -1,6 +1,5 @@
 import * as soundworks from 'soundworks/client';
 import { decibelToLinear } from 'soundworks/utils/math';
-import instrumentFactory from './instrumentFactory';
 import Instrument from './Instrument';
 
 const template = `
@@ -51,6 +50,33 @@ function radToDegrees(radians) {
   return radians * 180 / Math.PI;
 }
 
+function createArray(length) {
+  const array = [];
+
+  for(let i = 0; i < length; i++)
+    array.push(0);
+
+  return array;
+}
+
+function copyArray(length) {
+  const array = [];
+
+  for(let i = 0; i < length; i++)
+    array.push(0);
+
+  return array;
+}
+
+function cloneArray(array) {
+  const copy = [];
+
+  for(let e of array)
+    copy.push(e);
+
+  return copy;
+}
+
 function fillQuantile(quantile, numActives, numSounds) {
   const length = quantile.length;
   let sum = 0;
@@ -83,6 +109,15 @@ function getRandomFromQuantile(quantile) {
   return quantile[i];
 }
 
+function generateRandomSequence(quantile, length) {
+  const sequence = [];
+
+  for (let i = 0; i < length; i++)
+    sequence.push(getRandomFromQuantile(quantile));
+
+  return sequence;
+}
+
 function makeAngles(numSegs, radius, gap) {
   const angles = [];
   const width = 2 * Math.PI / numSegs;
@@ -100,13 +135,6 @@ function makeAngles(numSegs, radius, gap) {
   return angles;
 }
 
-function setSequence(sequence, values) {
-  const length = Math.min(sequence.length, values.length);
-
-  for (let i = 0; i < length; i++)
-    sequence[i] = values[i];
-}
-
 class OffScreenRenderer extends soundworks.Canvas2dRenderer {
   constructor() {
     super(0);
@@ -121,6 +149,7 @@ class OffScreenRenderer extends soundworks.Canvas2dRenderer {
     this.offCanvas.width = this.canvasWidth;
     this.offCanvas.height = this.canvasHeight;
     this.offCtx = this.offCanvas.getContext('2d');
+    this.refresh();
   }
 
   add(renderer) {
@@ -141,7 +170,7 @@ class OffScreenRenderer extends soundworks.Canvas2dRenderer {
     ctx.save();
     ctx.clearRect(0, 0, width, height);
 
-    for(let r of this.renderers)
+    for (let r of this.renderers)
       r.refresh(ctx, width, height);
 
     ctx.restore();
@@ -162,8 +191,8 @@ class OffScreenRenderer extends soundworks.Canvas2dRenderer {
 }
 
 class SequenceRenderer {
-  constructor(states, angles, radius, lineWidth) {
-    this.states = states;
+  constructor(sequence, angles, radius, lineWidth) {
+    this.sequence = sequence;
     this.angles = angles;
     this.radius = radius;
     this.lineWidth = lineWidth;
@@ -173,15 +202,15 @@ class SequenceRenderer {
 
   refresh(ctx, width, height) {
     const angles = this.angles;
-    const states = this.states;
+    const sequence = this.sequence;
     const x0 = width / 2;
     const y0 = height / 2;
 
-    for (let i = 0; i < states.length; i++) {
-      const state = states[i];
+    for (let i = 0; i < sequence.length; i++) {
+      const value = sequence[i];
       const angle = angles[i];
 
-      ctx.strokeStyle = this.colors[state];
+      ctx.strokeStyle = this.colors[value];
       ctx.lineWidth = this.lineWidth;
       ctx.globalAlpha = 1;
 
@@ -267,11 +296,9 @@ class StepSeqView extends soundworks.CanvasView {
     this.touchSurface = null;
 
     this.numSteps = setup.steps;
-    this.innerLineWidth = 0;
-    this.outerLineWidth = 0;
-    this.innerRadius = 0;
-    this.outerRadius = 0;
-    this.innerAngles = null;
+    this.minRadius = 0;
+    this.maxRadius = 0;
+    this.centerRadius = 0;
 
     this.icons = iconsWhite;
 
@@ -291,16 +318,11 @@ class StepSeqView extends soundworks.CanvasView {
     const margin = 10;
     const outerRadius = (canvasMin / 2 - margin) / (1 + C * Q / 2);
     const innerRadius = outerRadius * C;
-
     const innerLineWidth = Q * outerRadius;
     const outerLineWidth = Q * innerRadius;
-    this.outerLineWidth = innerLineWidth;
-    this.innerLineWidth = outerLineWidth;
 
-    this.innerRadius = innerRadius;
-    this.outerRadius = outerRadius;
     this.minRadius = innerRadius - innerLineWidth / 2 - 4;
-    this.maxRadius = outerRadius + this.outerLineWidth / 2 + 4;
+    this.maxRadius = outerRadius + outerLineWidth / 2 + 4;
     this.centerRadius = innerRadius + innerLineWidth / 2;
 
     const gap = 2;
@@ -308,10 +330,10 @@ class StepSeqView extends soundworks.CanvasView {
     const outerAngles = makeAngles(numSteps, outerRadius, gap);
 
     const instrument = this.instrument;
-    const innerSequenceRenderer = new SequenceRenderer(instrument.innerSequence, innerAngles, innerRadius, innerLineWidth - 2 * gap);
+    const innerSequenceRenderer = new SequenceRenderer(instrument.inner, innerAngles, innerRadius, innerLineWidth - 2 * gap);
     this.innerSequenceRenderer = innerSequenceRenderer;
 
-    const outerSequenceRenderer = new SequenceRenderer(instrument.outerSequence, outerAngles, outerRadius, outerLineWidth - 2 * gap);
+    const outerSequenceRenderer = new SequenceRenderer(instrument.outer, outerAngles, outerRadius, outerLineWidth - 2 * gap);
     this.outerSequenceRenderer = outerSequenceRenderer;
 
     const offScreen = new OffScreenRenderer();
@@ -325,16 +347,20 @@ class StepSeqView extends soundworks.CanvasView {
     this.stepRenderer = stepRenderer;
 
     instrument.addViewListener('touchstart', this.onTouchStart);
-
     this.makeButtons(3);
+  }
+
+  setInnerSequence(value) {
+    this.innerSequenceRenderer.sequence = value;
+  }
+
+  setOuterSequence(value) {
+    this.outerSequenceRenderer.sequence = value;
   }
 
   remove() {
     super.remove();
-
-    const instrument = this.instrument;
-    instrument.removeViewListener('touchstart', this.onTouchStart);
-    instrument.removeViewListener('touchstart', this.onTouchButton);
+    this.instrument.removeViewListener('touchstart', this.onTouchStart);
   }
 
   makeButtons(numButtons) {
@@ -362,25 +388,27 @@ class StepSeqView extends soundworks.CanvasView {
   onTouchButton(index) {
     return () => {
       const instrument = this.instrument;
+      let innerSequence, outerSequence;
 
       switch (index) {
         case 0:
-          instrument.clear();
+          innerSequence = createArray(this.numSteps);
+          outerSequence = createArray(this.numSteps);
           break;
 
         case 1:
-          instrument.generatePresetSequence();
+          innerSequence = cloneArray(this.setup.inner.preset);
+          outerSequence = cloneArray(this.setup.outer.preset);
           break;
 
         case 2:
-          instrument.generateRandomSequence();
+          innerSequence = generateRandomSequence(instrument.innerQuantile, this.numSteps);
+          outerSequence = generateRandomSequence(instrument.outerQuantile, this.numSteps);
           break;
       }
 
-      const environment = instrument.environment;
-      environment.sendControl('inner-sequence', instrument.innerSequence);
-      environment.sendControl('outer-sequence', instrument.outerSequence);
-
+      instrument.setInnerSequence(innerSequence, true);
+      instrument.setOuterSequence(outerSequence, true);
       this.offScreen.refresh();
     };
   }
@@ -448,24 +476,16 @@ class StepSeqView extends soundworks.CanvasView {
   }
 }
 
-
 class StepSeqInstrument extends Instrument {
   constructor(environment, setup) {
     super(environment, setup);
 
-    this.view = null;
+    this.numSteps = setup.steps;
+    this.resetState();
 
-    const numSteps = setup.steps;
-    this.numSteps = numSteps;
-    this.stepsPerMeasure = numSteps / setup.length;
+    this.stepsPerMeasure = this.numSteps / setup.length;
     this.numInnerSounds = this.setup.inner.sounds.length;
     this.numOuterSounds = this.setup.outer.sounds.length;
-
-    this.lastCutoff = 0;
-
-    this.innerSequence = new Array(this.numSteps);
-    this.outerSequence = new Array(this.numSteps);
-    this.clear();
 
     this.innerQuantile = new Array(this.numSteps);
     this.outerQuantile = new Array(this.numSteps);
@@ -477,52 +497,78 @@ class StepSeqInstrument extends Instrument {
     this.maxCutoffFreq = audioContext.sampleRate / 2;
     this.logCutoffRatio = Math.log(this.maxCutoffFreq / this.minCutoffFreq);
 
-    const cutoff = audioContext.createBiquadFilter();
-    cutoff.type = 'lowpass';
-    cutoff.frequency.value = this.maxCutoffFreq;
-    this.cutoff = cutoff;
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = this.maxCutoffFreq;
+    this.filter = filter;
 
     this.onMetroBeat = this.onMetroBeat.bind(this);
     this.onAccelerationIncludingGravity = this.onAccelerationIncludingGravity.bind(this);
   }
 
-  setCutoff(value) {
-    const cutoffFreq = this.minCutoffFreq * Math.exp(this.logCutoffRatio * Math.sqrt(value));
-    this.cutoff.frequency.value = cutoffFreq;
+  resetState() {
+    this.cutoff = 1;
+    this.inner = createArray(this.numSteps);
+    this.outer = createArray(this.numSteps);
   }
 
-  setInnerSequence(values) {
-    setSequence(this.innerSequence, values);
+  setCutoff(value, send) {
+    this.cutoff = value;
+    this.filter.frequency.value = this.minCutoffFreq * Math.exp(this.logCutoffRatio * Math.sqrt(value));
+
+    if (send)
+      this.sendParam('cutoff', value);
   }
 
-  setOuterSequence(values) {
-    setSequence(this.outerSequence, values);
+  setInnerSequence(value, send) {
+    this.inner = value;
+
+    if(this.view)
+      this.view.setInnerSequence(value);
+
+    if (send)
+      this.sendParam('inner', value);
   }
 
-  setControl(name, value) {
+  setOuterSequence(value, send) {
+    this.outer = value;
+
+    if(this.view)
+      this.view.setOuterSequence(value);
+
+    if (send)
+      this.sendParam('outer', value);
+  }
+
+  setInnerStep(index) {
+    const value = (this.inner[index] + 1) % (this.numInnerSounds + 1);
+    this.inner[index] = value;
+    this.sendParam('inner', this.inner);
+  }
+
+  setOuterStep(index) {
+    const value = (this.outer[index] + 1) % (this.numOuterSounds + 1);
+    this.outer[index] = value;
+    this.sendParam('outer', this.outer);
+  }
+
+  setParam(name, value) {
     switch (name) {
       case 'cutoff':
-        this.setCutoff(value);
+        this.setCutoff(value, false);
         break;
 
-      case 'inner-sequence':
-        this.setInnerSequence(value);
+      case 'inner':
+        this.setInnerSequence(value, false);
         break;
 
-      case 'outer-sequence':
-        this.setOuterSequence(value);
+      case 'outer':
+        this.setOuterSequence(value, false);
         break;
     }
   }
 
-  updateControl() {
-    const environment = this.environment;
-    environment.sendControl('inner-sequence', this.innerSequence);
-    environment.sendControl('outer-sequence', this.outerSequence);
-    environment.sendControl('cutoff', this.lastCutoff);
-  }
-
-  showScreen(environment) {
+  showScreen() {
     const view = new StepSeqView(this, this.setup);
     this.addView(view);
     this.addMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
@@ -531,11 +577,9 @@ class StepSeqInstrument extends Instrument {
   hideScreen() {
     this.removeView();
     this.removeMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
-    this.clear();
   }
 
   startSound() {
-    this.lastCutoff = 0;
     this.addMetronome(this.onMetroBeat, this.numSteps, this.stepsPerMeasure);
   }
 
@@ -544,33 +588,11 @@ class StepSeqInstrument extends Instrument {
   }
 
   connect(output) {
-    this.cutoff.connect(output);
+    this.filter.connect(output);
   }
 
   disconnect(output) {
-    this.cutoff.disconnect(output);
-  }
-
-  clear() {
-    const numSteps = this.numSteps;
-
-    for (let i = 0; i < numSteps; i++)
-      this.innerSequence[i] = 0;
-
-    for (let i = 0; i < numSteps; i++)
-      this.outerSequence[i] = 0;
-  }
-
-  setInnerStep(index) {
-    const state = (this.innerSequence[index] + 1) % (this.numInnerSounds + 1);
-    this.innerSequence[index] = state;
-    this.environment.sendControl('inner-sequence', this.innerSequence);
-  }
-
-  setOuterStep(index) {
-    const state = (this.outerSequence[index] + 1) % (this.numOuterSounds + 1);
-    this.outerSequence[index] = state;
-    this.environment.sendControl('outer-sequence', this.outerSequence);
+    this.filter.disconnect(output);
   }
 
   set foreground(value) {
@@ -578,51 +600,22 @@ class StepSeqInstrument extends Instrument {
       this.view.setForegroudColor(value);
   }
 
-  makeSound(sounds, state) {
-    if (state > 0) {
+  makeSound(sounds, value) {
+    if (value > 0) {
       const audioContext = this.audioContext;
       const time = this.currentTime;
-      const sound = sounds[state - 1];
+      const sound = sounds[value - 1];
       const src = audioContext.createBufferSource();
-      src.connect(this.cutoff);
+      src.connect(this.filter);
       src.buffer = sound.buffer;
       src.start(time);
     }
   }
 
-  generatePresetSequence() {
-    this.setInnerSequence(this.setup.inner.preset);
-    this.setOuterSequence(this.setup.outer.preset);
-  }
-
-  generateRandomSequence() {
-    const setup = this.setup;
-    const randomInnerSequence = [];
-    const randomOuterSequence = [];
-    const thresholdMin = setup.randomThresholdMin;
-    const thresholdMax = setup.randomThresholdMax;
-    const randomRepeat = setup.randomRepeat;
-    const numInnerSounds = setup.inner.sounds.length;
-    const numOuterSounds = setup.outer.sounds.length;
-    const innerPresetLength = setup.inner.preset.length;
-    const outerPresetLength = setup.outer.preset.length;
-
-    const innerSequence = this.innerSequence;
-    for (let i = 0; i < innerPresetLength; i++)
-      innerSequence[i] = getRandomFromQuantile(this.innerQuantile);
-
-    const outerSequence = this.outerSequence;
-    for (let i = 0; i < outerPresetLength; i++)
-      outerSequence[i] = getRandomFromQuantile(this.outerQuantile);
-  }
-
   onMetroBeat(measure, beat) {
     const setup = this.setup;
-    const innerState = this.innerSequence[beat];
-    this.makeSound(setup.inner.sounds, innerState);
-
-    const outerState = this.outerSequence[beat];
-    this.makeSound(setup.outer.sounds, outerState);
+    this.makeSound(setup.inner.sounds, this.inner[beat]);
+    this.makeSound(setup.outer.sounds, this.outer[beat]);
 
     const view = this.view;
     if (view)
@@ -633,20 +626,13 @@ class StepSeqInstrument extends Instrument {
     const accX = data[0];
     const accY = data[1];
     const accZ = data[2];
-
     const pitch = 2 * Math.atan2(accY, Math.sqrt(accZ * accZ + accX * accX)) / Math.PI;
     const roll = -2 * Math.atan2(accX, Math.sqrt(accY * accY + accZ * accZ)) / Math.PI;
-    const cutoff = 0.5 + Math.max(-0.8, Math.min(0.8, (accZ / 9.81))) / 1.6;
+    const cutoff = Math.max(0, Math.min(1, 0.5 + accZ / (9.81 * 1.6))); // ±0.8 * 9.81 --> 0...1
 
-    if (Math.abs(cutoff - this.lastCutoff) > 0.01) {
-      this.lastCutoff = cutoff;
-
-      this.setCutoff(cutoff);
-      this.environment.sendControl('cutoff', cutoff);
-    }
+    if (Math.abs(cutoff - this.cutoff) > 0.01)
+      this.setCutoff(cutoff, true);
   }
 }
-
-instrumentFactory.addCtor('stepseq', StepSeqInstrument);
 
 export default StepSeqInstrument;
