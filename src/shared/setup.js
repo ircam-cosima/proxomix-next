@@ -247,6 +247,115 @@ const setup = {
         offset: beatDuration,
       }],
     },
+    'guitar-shaker': {
+      icon: {
+        chooser: {
+          white: 'icons/guitar-shaker-white.png',
+          black: 'icons/guitar-shaker-black.png',
+        },
+        instrument: {
+          white: 'icons/guitar-shaker-white-no-circle.png',
+          black: 'icons/guitar-shaker-black-no-circle.png',
+        },
+      },
+      type: 'loop',
+      length: 8,
+      loops: [{
+        length: 8,
+        buffer: 'sounds/guitar-shaker-loop.wav',
+        offset: beatDuration,
+      }],
+    },
+    'perc-shaker': {
+      icon: {
+        chooser: {
+          white: 'icons/perc-shaker-white.png',
+          black: 'icons/perc-shaker-black.png',
+        },
+        instrument: {
+          white: 'icons/perc-shaker-white-no-circle.png',
+          black: 'icons/perc-shaker-black-no-circle.png',
+        },
+      },
+      type: 'loop',
+      length: 4,
+      loops: [{
+        length: 4,
+        buffer: 'sounds/perc-shaker-loop.wav',
+        offset: beatDuration,
+      }],
+    },
+    'metallic-shaker': {
+      icon: {
+        chooser: {
+          white: 'icons/metallic-shaker-white.png',
+          black: 'icons/metallic-shaker-black.png',
+        },
+        instrument: {
+          white: 'icons/metallic-shaker-white-no-circle.png',
+          black: 'icons/metallic-shaker-black-no-circle.png',
+        },
+      },
+      type: 'loop',
+      length: 4,
+      loops: [{
+        length: 4,
+        buffer: 'sounds/metallic-shaker-loop.wav',
+        offset: beatDuration,
+      }],
+    },
+        'fx-pad': {
+      icon: {
+        chooser: {
+          white: 'icons/fx-pad-white.png',
+          black: 'icons/fx-pad-black.png',
+        },
+        instrument: {
+          white: 'icons/fx-pad-white.png',
+          black: 'icons/fx-pad-black.png',
+        },
+      },
+      type: 'pad',
+      sounds: [{
+        length: 6,
+        buffer: 'sounds/fx-pad-noise.wav',
+        offset: beatDuration,
+      }, {
+        length: 6,
+        buffer: 'sounds/fx-pad-metal.wav',
+        offset: beatDuration,
+      }],
+    },
+    'pad': {
+      icon: {
+        chooser: {
+          white: 'icons/pad-white.png',
+          black: 'icons/pad-black.png',
+        },
+        instrument: {
+          white: 'icons/pad-white.png',
+          black: 'icons/pad-black.png',
+        },
+      },
+      type: 'pad',
+      sounds: [{
+        length: 6,
+        buffer: 'sounds/pad-1.wav',
+        offset: beatDuration,
+      }, {
+        length: 6,
+        buffer: 'sounds/pad-2.wav',
+        offset: beatDuration,
+      }, {
+        length: 6,
+        buffer: 'sounds/pad-3.wav',
+        offset: beatDuration,
+      }, {
+        length: 6,
+        buffer: 'sounds/pad-4.wav',
+        offset: beatDuration,
+      }],
+    },
     'perc-classic-1': {
       icon: {
         chooser: {

@@ -158,7 +158,7 @@ class Group {
     const numCandidates = merge.players.size;
     const numMigrants = Math.min(availablePlaces, numCandidates);
     const cadidates = merge.players;
-    const residents = keep.players; 
+    const residents = keep.players;
     const migrants = new Set();
     const iter = cadidates.values();
 
@@ -181,7 +181,7 @@ class Group {
     for (let p of migrants)
       residents.add(p);
 
-    // refuse non-accepted migrant cadidates 
+    // refuse non-accepted migrant cadidates
     for (let i = numMigrants; i < numCandidates; i++) {
       const p = iter.next().value;
 

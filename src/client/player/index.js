@@ -2,10 +2,14 @@ import * as soundworks from 'soundworks/client';
 import PlayerExperience from './PlayerExperience.js';
 import LoopInstrument from '../shared/instruments/LoopInstrument';
 import StepSeqInstrument from '../shared/instruments/StepSeqInstrument';
+import PadInstrument from '../shared/instruments/PadInstrument';
 import serviceViews from '../shared/serviceViews';
 
 const init = () => {
   document.addEventListener('touchmove', function(event) {
+    event.preventDefault();
+  });
+  document.addEventListener('touchstart', function(event) {
     event.preventDefault();
   });
 
