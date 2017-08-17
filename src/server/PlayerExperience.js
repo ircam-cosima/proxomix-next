@@ -174,7 +174,7 @@ class Group {
     for (let p of migrants)
       residents.add(p);
 
-    // refuse non-accepted migrant cadidates 
+    // refuse non-accepted migrant cadidates
     for (let i = numMigrants; i < numCandidates; i++) {
       const p = iter.next().value;
 

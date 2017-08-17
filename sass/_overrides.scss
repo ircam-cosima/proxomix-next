@@ -64,11 +64,6 @@
   background-repeat: no-repeat;
   background-position: 50% 50%;
   background-size: contain;
-
-  p {
-    transform: rotate(90deg);
-    pointer-events: none;
-  }
 }
 
 .inst-icon {
@@ -82,6 +77,17 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+.chooser-pad {
+  overflow: hidden;
+  position: absolute;
+  box-sizing: border-box;
+  padding: 5px;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: contain;
+  -webkit-transition: background-color 2s;
+  transition: background-color 1s;
 
 .tutti {
   font-size: 1rem;
