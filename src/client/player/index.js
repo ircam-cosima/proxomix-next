@@ -3,10 +3,11 @@ import PlayerExperience from './PlayerExperience.js';
 import serviceViews from '../shared/serviceViews';
 
 const init = () => {
-  document.addEventListener('touchmove', function(event) {
+  document.addEventListener('touchstart', function(event) {
     event.preventDefault();
   });
-  document.addEventListener('touchstart', function(event) {
+
+  document.addEventListener('touchmove', function(event) {
     event.preventDefault();
   });
 
@@ -29,4 +30,3 @@ if (!!window.cordova)
   document.addEventListener('deviceready', init);
 else
   window.addEventListener('load', init);
-

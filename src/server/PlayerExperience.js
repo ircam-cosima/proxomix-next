@@ -1,7 +1,7 @@
 import { Experience } from 'soundworks/server';
 import mixSetup from '../shared/setup';
 
-const DEBUG = false;
+const DEBUG = true;
 
 const instrumentList = Object.keys(mixSetup.instruments);
 const numInstruments = instrumentList.length;
