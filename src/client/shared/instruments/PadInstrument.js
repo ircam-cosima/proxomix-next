@@ -265,6 +265,4 @@ class PadInstrument extends Instrument {
   }
 }
 
-instrumentFactory.addCtor('pad', PadInstrument);
-
 export default PadInstrument;

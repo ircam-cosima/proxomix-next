@@ -19,6 +19,7 @@ class PlayerExperience extends soundworks.Experience {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
+    this.sharedParams = this.require('shared-params');
     this.metricScheduler = this.require('metric-scheduler');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
@@ -100,6 +101,7 @@ class PlayerExperience extends soundworks.Experience {
       this.instruments.push(instrument);
     }
 
+    this.sharedParams.addParamListener('mutePlayers', (value) => this.stopInstruments());
   }
 
   showChooser() {
@@ -180,11 +182,9 @@ class PlayerExperience extends soundworks.Experience {
     this.showChooser();
   }
 
-  stopInstruments() {
-    for (let instrument of this.instruments) {
-      instrument.hide();
+  stopInstruments(hide) {
+    for (let instrument of this.instruments)
       instrument.stop();
-    }
   }
 
   startBeaconing(id) {
@@ -225,7 +225,9 @@ class PlayerExperience extends soundworks.Experience {
       this.stopBeaconing();
       this.stopInstruments();
 
-      this.send('exit', id);
+      this.instrument.hide();
+
+      this.send('abort', id);
 
       this.playerId = undefined;
       this.groupId = undefined;
