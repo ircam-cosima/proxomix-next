@@ -237,14 +237,14 @@ class LoopInstrument extends Instrument {
     this.loop = 0;
   }
 
-  setLoop(index, send) {
-    this.loop = index;
+  setLoop(value, send) {
+    this.loop = value;
 
     if(this.loopTrack)
-      this.loopTrack.setLoop(index);
+      this.loopTrack.setLoop(value);
 
     if (send)
-      this.sendParam('loop', index);
+      this.sendParam('loop', value);
   }
 
   setCutoff(value, send) {

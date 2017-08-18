@@ -44,7 +44,7 @@ class PadView extends soundworks.CanvasView {
 
     this.touchSurface = null;
 
-    this.selectedPad = 0;
+    this.selectedPad = -1;
 
     this.length = setup.length;
     this.setup = setup;
@@ -68,8 +68,8 @@ class PadView extends soundworks.CanvasView {
     const numRows = Math.ceil(numPads / 2);
     const numCols = 2;
     const width = (window.innerWidth - margin) / numCols - margin;
-    const height = (window.innerHeight - margin) / (2 * numRows) - margin;
-    const shiftToCenter = (height * numRows) / 2 + margin;
+    const height = width;
+    const shiftToCenter = (window.innerHeight - height * numRows + margin) / 2;
 
     this.pads = [];
 
@@ -105,40 +105,42 @@ class PadView extends soundworks.CanvasView {
     const fillColors = isWhite ? fillColorsWhite : fillColorsBlack;
 
     this.fillColors = fillColors;
+
+    for(let i = 0; i < this.pads.length; i++)
+      this.updatePadColor(i, (i !== this.selectedPad));
   }
 
   updatePadColor(id, color) {
-    if (this.fillColors) {
-      const newColor = (color + 1) % 2;
-      const fillColor = this.fillColors[newColor];
-      const pad = this.pads[id];
+    const newColor = (color + 1) % 2;
+    const fillColor = this.fillColors[newColor];
+    const pad = this.pads[id];
 
-      pad.style.backgroundColor = fillColor;
-    }
+    pad.style.backgroundColor = fillColor;
   }
 
   onTouchStartPad(id) {
     const instrument = this.instrument;
-    const color = 0;
+
     return () => {
-      instrument.nbOfPad.push(0);
-      if (instrument.gain === undefined) {
-        instrument.makeSound(id);
-        this.updatePadColor(id, color);
+      if (this.selectedPad < 0) {
+        this.selectedPad = id;
+        instrument.setSound(id, true);
+        this.updatePadColor(id, 0);
       }
     };
   }
 
   onTouchEndPad(id) {
     const instrument = this.instrument;
-    const color = 1;
 
     return () => {
-      instrument.stopPadSound();
-      this.updatePadColor(id, color);
+      if(id === this.selectedPad) {
+        this.selectedPad = -1;
+        instrument.setSound(-1, true);
+        this.updatePadColor(id, 1);
+      }
     };
   }
-
 
   onResize(width, height, orientation) {
     super.onResize(width, height, orientation);
@@ -155,34 +157,60 @@ class PadInstrument extends Instrument {
 
     this.setup = setup;
 
-    this.lastCutoff = 0;
-
-    const nbOfPad = [];
-    this.nbOfPad = nbOfPad;
+    this.sound = -1;
+    this.cutoff = 0;
 
     const audioContext = this.audioContext;
     this.minCutoffFreq = 5;
     this.maxCutoffFreq = audioContext.sampleRate / 2;
     this.logCutoffRatio = Math.log(this.maxCutoffFreq / this.minCutoffFreq);
 
-    const src = audioContext.createBufferSource();
-    this.src = src;
-    this.src.start();
-
-    const cutoff = audioContext.createBiquadFilter();
-    cutoff.type = 'lowpass';
-    cutoff.frequency.value = this.maxCutoffFreq;
-    this.cutoff = cutoff;
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = this.maxCutoffFreq;
+    this.filter = filter;
 
     this.onAccelerationIncludingGravity = this.onAccelerationIncludingGravity.bind(this);
   }
 
-  setCutoff(value) {
-    const cutoffFreq = this.minCutoffFreq * Math.exp(this.logCutoffRatio * Math.sqrt(value));
-    this.cutoff.frequency.value = cutoffFreq;
+  resetState() {
+    this.cutoff = 1;
+    this.sound = -1;
   }
 
-  showScreen(environment) {
+  setSound(value, send) {
+    this.sound = value;
+
+    if(value >= 0)
+      this.startPadSound(value);
+    else
+      this.stopPadSound();
+
+    if (send)
+      this.sendParam('sound', value);
+  }
+
+  setCutoff(value, send) {
+    const cutoffFreq = this.minCutoffFreq * Math.exp(this.logCutoffRatio * Math.sqrt(value));
+    this.filter.frequency.value = cutoffFreq;
+
+    if (send)
+      this.sendParam('cutoff', value);
+  }
+
+  setParam(name, value) {
+    switch (name) {
+      case 'cutoff':
+        this.setCutoff(value, false);
+        break;
+
+      case 'sound':
+        this.setSound(value, false);
+        break;
+    }
+  }
+
+  showScreen() {
     const view = new PadView(this, this.setup);
     this.addView(view);
     this.addMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
@@ -200,11 +228,11 @@ class PadInstrument extends Instrument {
   }
 
   connect(output) {
-    this.cutoff.connect(output);
+    this.filter.connect(output);
   }
 
   disconnect(output) {
-    this.cutoff.disconnect(output);
+    this.filter.disconnect(output);
   }
 
   set foreground(value) {
@@ -212,38 +240,39 @@ class PadInstrument extends Instrument {
       this.view.setForegroudColor(value);
   }
 
-  makeSound(index) {
-    const sounds = this.setup.sounds;
-    const sound = sounds[index];
-    const src = this.audioContext.createBufferSource();
-    const gain = this.audioContext.createGain();
-    const time = this.currentTime;
+  startPadSound(index) {
+    if (!this.src) {
+      const sounds = this.setup.sounds;
+      const sound = sounds[index];
+      const src = this.audioContext.createBufferSource();
+      const gain = this.audioContext.createGain();
+      const time = this.currentTime;
 
-    src.buffer = sound.buffer;
-    src.connect(gain);
-    gain.connect(this.cutoff);
+      src.buffer = sound.buffer;
+      src.connect(gain);
+      gain.connect(this.filter);
 
-    src.start(time);
+      src.start(time);
 
-    this.gain = gain;
-    this.src = src;
+      this.gain = gain;
+      this.src = src;
+    }
   }
 
   stopPadSound() {
-    if (this.gain) {
-      if (this.nbOfPad.length < 2) {
-        const gainNode = this.gain;
-        const src = this.src;
-        const time = this.currentTime;
-        const fadeDuration = 1;
+    if (this.src) {
+      const gainNode = this.gain;
+      const src = this.src;
+      const time = this.currentTime;
+      const fadeDuration = 1;
 
-        gainNode.gain.setValueAtTime(1, time);
-        gainNode.gain.linearRampToValueAtTime(0, time + fadeDuration);
+      gainNode.gain.setValueAtTime(1, time);
+      gainNode.gain.linearRampToValueAtTime(0, time + fadeDuration);
 
-        this.gain = undefined;
-        src.stop(time + fadeDuration);
-      }
-      this.nbOfPad.splice(0, 1);
+      src.stop(time + fadeDuration);
+
+      this.gain = undefined;
+      this.src = undefined;
     }
   }
 
@@ -251,20 +280,13 @@ class PadInstrument extends Instrument {
     const accX = data[0];
     const accY = data[1];
     const accZ = data[2];
-
     const pitch = 2 * Math.atan2(accY, Math.sqrt(accZ * accZ + accX * accX)) / Math.PI;
     const roll = -2 * Math.atan2(accX, Math.sqrt(accY * accY + accZ * accZ)) / Math.PI;
-    const cutoff = 0.5 + Math.max(-0.8, Math.min(0.8, (accZ / 9.81))) / 1.6;
+    const cutoff = Math.max(0, Math.min(1, 0.5 + accZ / (9.81 * 1.6))); // ±0.8 * 9.81 --> 0...1
 
-    if (Math.abs(cutoff - this.lastCutoff) > 0.01) {
-      this.lastCutoff = cutoff;
-
-      this.setCutoff(cutoff);
-      this.environment.sendControl('cutoff', cutoff);
-    }
+    if (Math.abs(cutoff - this.cutoff) > 0.01)
+      this.setCutoff(cutoff, true);
   }
 }
-
-instrumentFactory.addCtor('pad', PadInstrument);
 
 export default PadInstrument;

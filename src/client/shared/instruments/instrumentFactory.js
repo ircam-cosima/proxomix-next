@@ -1,5 +1,6 @@
 import LoopInstrument from './LoopInstrument';
 import StepSeqInstrument from './StepSeqInstrument';
+import PadInstrument from './PadInstrument';
 
 class InstrumentFactory {
   constructor(options) {
@@ -23,5 +24,6 @@ class InstrumentFactory {
 const instrumentFactory = new InstrumentFactory();
 instrumentFactory.addCtor('loop', LoopInstrument);
 instrumentFactory.addCtor('stepseq', StepSeqInstrument);
+instrumentFactory.addCtor('pad', PadInstrument);
 
 export default instrumentFactory;
