@@ -92,8 +92,33 @@ class TuttiExperience extends soundworks.Experience {
       this.instruments.push(instrument);
     }
 
+    this.sharedParams.addParamListener('tuttiLowpass', (value) => this.setLowpass(value));
     this.sharedParams.addParamListener('tuttiCutoff', (value) => this.setCutoff(value));
     this.sharedParams.addParamListener('tuttiGain', (value) => this.setGain(value));
+  }
+
+  setLowpass(value) {
+    this.gain.disconnect();
+    this.lowpass1.disconnect();
+    this.lowpass2.disconnect();
+
+    switch(value) {
+      case 'off':
+      this.gain.connect(audioContext.destination);
+      break;
+      
+      case '12dB':
+      this.gain.connect(this.lowpass1);
+      this.lowpass1.connect(audioContext.destination);
+      break;
+      
+      default:
+      case '24dB':
+      this.gain.connect(this.lowpass1);
+      this.lowpass1.connect(this.lowpass2);
+      this.lowpass2.connect(audioContext.destination);
+      break;
+    }
   }
 
   setCutoff(value) {

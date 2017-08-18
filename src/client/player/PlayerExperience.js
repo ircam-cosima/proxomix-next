@@ -50,6 +50,10 @@ class PlayerExperience extends soundworks.Experience {
     this.instrument = null;
     this.instruments = [];
 
+    const gain = audioContext.createGain();
+    gain.connect(audioContext.destination);
+    this.gain = gain;
+
     this.onAcknowledge = this.onAcknowledge.bind(this);
     this.onHomeButton = this.onHomeButton.bind(this);
     this.onChooserButton = this.onChooserButton.bind(this);
@@ -97,11 +101,20 @@ class PlayerExperience extends soundworks.Experience {
     for (let name in mixSetup.instruments) {
       const instrumentSetup = mixSetup.instruments[name];
       const instrument = instrumentFactory.createInstrument(instrumentEnv, instrumentSetup.type, instrumentSetup);
-      instrument.connect(audioContext.destination);
+      instrument.connect(this.gain);
       this.instruments.push(instrument);
     }
 
-    this.sharedParams.addParamListener('mutePlayers', (value) => this.stopInstruments());
+    this.sharedParams.addParamListener('mutePlayers', (value) => this.setMute(value));
+  }
+
+  setMute(value) {
+    const time = audioContext.currentTime;
+
+    if(value)
+      this.gain.gain.value = 0;
+    else
+      this.gain.gain.value = 1;
   }
 
   showChooser() {
@@ -209,6 +222,7 @@ class PlayerExperience extends soundworks.Experience {
     const instrument = this.instruments[id];
     instrument.show();
     instrument.start();
+
     this.instrument = instrument;
 
     this.addHomeButton(instrument);
