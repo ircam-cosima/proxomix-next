@@ -23,7 +23,8 @@ class TuttiExperience extends soundworks.Experience {
   constructor(assetsDomain) {
     super();
 
-    this.platform = this.require('platform', { features: ['web-audio'] });
+    this.platform = this.require('platform', { features: ['web-audio'], showDialog: false });
+    this.sharedParams = this.require('shared-params');
     this.metricScheduler = this.require('metric-scheduler');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
@@ -33,6 +34,23 @@ class TuttiExperience extends soundworks.Experience {
 
     this.instruments = [];
     this.activeIds = new Set();
+
+    const lowpass2 = audioContext.createBiquadFilter();
+    lowpass2.connect(audioContext.destination);
+    lowpass2.type = 'lowpass';
+    lowpass2.frequency.value = 250;
+
+    const lowpass1 = audioContext.createBiquadFilter();
+    lowpass1.connect(lowpass2);
+    lowpass1.type = 'lowpass';
+    lowpass1.frequency.value = 250;
+
+    const gain = audioContext.createGain();
+    gain.connect(lowpass1);    
+
+    this.gain = gain;
+    this.lowpass1 = lowpass1;
+    this.lowpass2 = lowpass2;
 
     this.chooserView = null;
 
@@ -70,9 +88,46 @@ class TuttiExperience extends soundworks.Experience {
     for (let name in mixSetup.instruments) {
       const instrumentSetup = mixSetup.instruments[name];
       const instrument = instrumentFactory.createInstrument(instrumentEnv, instrumentSetup.type, instrumentSetup);
-      instrument.connect(audioContext.destination);
+      instrument.connect(this.gain);
       this.instruments.push(instrument);
     }
+
+    this.sharedParams.addParamListener('tuttiLowpass', (value) => this.setLowpass(value));
+    this.sharedParams.addParamListener('tuttiCutoff', (value) => this.setCutoff(value));
+    this.sharedParams.addParamListener('tuttiGain', (value) => this.setGain(value));
+  }
+
+  setLowpass(value) {
+    this.gain.disconnect();
+    this.lowpass1.disconnect();
+    this.lowpass2.disconnect();
+
+    switch(value) {
+      case 'off':
+      this.gain.connect(audioContext.destination);
+      break;
+      
+      case '12dB':
+      this.gain.connect(this.lowpass1);
+      this.lowpass1.connect(audioContext.destination);
+      break;
+      
+      default:
+      case '24dB':
+      this.gain.connect(this.lowpass1);
+      this.lowpass1.connect(this.lowpass2);
+      this.lowpass2.connect(audioContext.destination);
+      break;
+    }
+  }
+
+  setCutoff(value) {
+    this.lowpass1.frequency.value = value;
+    this.lowpass2.frequency.value = value;
+  }
+
+  setGain(value) {
+    this.gain.gain.value = decibelToLinear(value);
   }
 
   showChooser() {

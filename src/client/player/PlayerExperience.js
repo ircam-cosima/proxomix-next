@@ -19,6 +19,7 @@ class PlayerExperience extends soundworks.Experience {
     super();
 
     this.platform = this.require('platform', { features: ['web-audio'] });
+    this.sharedParams = this.require('shared-params');
     this.metricScheduler = this.require('metric-scheduler');
 
     this.audioBufferManager = this.require('audio-buffer-manager', {
@@ -48,6 +49,10 @@ class PlayerExperience extends soundworks.Experience {
 
     this.instrument = null;
     this.instruments = [];
+
+    const gain = audioContext.createGain();
+    gain.connect(audioContext.destination);
+    this.gain = gain;
 
     this.onAcknowledge = this.onAcknowledge.bind(this);
     this.onHomeButton = this.onHomeButton.bind(this);
@@ -96,10 +101,20 @@ class PlayerExperience extends soundworks.Experience {
     for (let name in mixSetup.instruments) {
       const instrumentSetup = mixSetup.instruments[name];
       const instrument = instrumentFactory.createInstrument(instrumentEnv, instrumentSetup.type, instrumentSetup);
-      instrument.connect(audioContext.destination);
+      instrument.connect(this.gain);
       this.instruments.push(instrument);
     }
 
+    this.sharedParams.addParamListener('mutePlayers', (value) => this.setMute(value));
+  }
+
+  setMute(value) {
+    const time = audioContext.currentTime;
+
+    if(value)
+      this.gain.gain.value = 0;
+    else
+      this.gain.gain.value = 1;
   }
 
   showChooser() {
@@ -180,11 +195,9 @@ class PlayerExperience extends soundworks.Experience {
     this.showChooser();
   }
 
-  stopInstruments() {
-    for (let instrument of this.instruments) {
-      instrument.hide();
+  stopInstruments(hide) {
+    for (let instrument of this.instruments)
       instrument.stop();
-    }
   }
 
   startBeaconing(id) {
@@ -209,6 +222,7 @@ class PlayerExperience extends soundworks.Experience {
     const instrument = this.instruments[id];
     instrument.show();
     instrument.start();
+
     this.instrument = instrument;
 
     this.addHomeButton(instrument);
@@ -225,7 +239,9 @@ class PlayerExperience extends soundworks.Experience {
       this.stopBeaconing();
       this.stopInstruments();
 
-      this.send('exit', id);
+      this.instrument.hide();
+
+      this.send('abort', id);
 
       this.playerId = undefined;
       this.groupId = undefined;

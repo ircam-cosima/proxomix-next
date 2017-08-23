@@ -347,6 +347,7 @@ export default class PlayerExperience extends Experience {
     // services
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.sync = this.require('sync');
+    this.sharedParams = this.require('shared-params');
     this.metricScheduler = this.require('metric-scheduler', { tempo: tempo, tempoUnit: tempoUnit });
 
     this.innerRssi = distanceToRssi(innerDistance);
@@ -385,7 +386,7 @@ export default class PlayerExperience extends Experience {
 
     this.receive(client, 'request', this._onRequest(client));
     this.receive(client, 'request-id', this._onRequestId(client));
-    this.receive(client, 'exit', this._onExit(client));
+    this.receive(client, 'abort', this._onAbort(client));
     this.receive(client, 'beacons', this._onBeacons(client));
     this.receive(client, 'control', this._onControl(client));
   }
@@ -551,7 +552,7 @@ export default class PlayerExperience extends Experience {
     };
   }
 
-  _onExit(client) {
+  _onAbort(client) {
     return (id) => this.deactivatePlayer(client, id);
   }
 

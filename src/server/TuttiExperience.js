@@ -9,6 +9,7 @@ export default class TuttiExperience extends Experience {
     // services
     this.audioBufferManager = this.require('audio-buffer-manager');
     this.sync = this.require('sync');
+    this.sharedParams = this.require('shared-params');
     this.metricScheduler = this.require('metric-scheduler');
   }
 
