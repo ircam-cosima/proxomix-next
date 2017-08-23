@@ -69,7 +69,7 @@ class PadView extends soundworks.CanvasView {
     const numCols = 2;
     const width = (window.innerWidth - margin) / numCols - margin;
     const height = width;
-    const shiftToCenter = (window.innerHeight - height * numRows + margin) / 2;
+    const shiftToCenter = (window.innerHeight - height * numRows) / 2 - margin;
 
     this.pads = [];
 
