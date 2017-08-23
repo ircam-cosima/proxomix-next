@@ -56,9 +56,10 @@ export default {
 
   // socket.io configuration
   websockets: {
-    // url: '192.168.1.2:8000',
-    url: '10.0.0.1:8000',
+    // url: '',
+    url: 'http://10.0.0.1:8000',
     transports: ['websocket'],
+    // path: '',
     // @note: EngineIO defaults
     // pingTimeout: 3000,
     // pingInterval: 1000,
