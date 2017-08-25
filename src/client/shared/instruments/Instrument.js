@@ -88,7 +88,7 @@ class Instrument {
 
   addLoopTrack(output, loops) {
     return this.environment.loopPlayer.addLoopTrack(output, loops);
-  } 
+  }
 
   removeLoopTrack(track) {
     this.environment.loopPlayer.removeLoopTrack(track);

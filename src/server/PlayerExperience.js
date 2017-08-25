@@ -562,7 +562,7 @@ export default class PlayerExperience extends Experience {
       const beacons = player.beacons;
       player.clearBeacons();
 
-      console.log(id, data);
+      //console.log(id, data);
 
       for (let i = 0; i < data.length; i += 2) {
         const otherId = data[i];

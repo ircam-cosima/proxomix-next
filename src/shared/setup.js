@@ -304,7 +304,7 @@ const setup = {
         offset: beatDuration,
       }],
     },
-        'fx-pad': {
+    'fx-pad': {
       icon: {
         chooser: {
           white: 'icons/fx-pad-white.png',

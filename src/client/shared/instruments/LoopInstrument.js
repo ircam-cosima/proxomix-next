@@ -1,5 +1,5 @@
 import Instrument from './Instrument';
-import { CanvasView } from 'soundworks/client';
+import { View, CanvasView } from 'soundworks/client';
 import CursorRenderer from './circular-renderers/CursorRenderer';
 import MeasureRenderer from './circular-renderers/MeasureRenderer';
 
@@ -87,8 +87,15 @@ class LoopView extends CanvasView {
   }
 
   remove() {
-    super.remove();
+    this.removeRenderer(this.measureRenderer);
+    this.removeRenderer(this.cursorRenderer);
+
+    this.measureRenderer.remove();
+    this.cursorRenderer.remove();
+
     this.instrument.removeMetronome(this.onMeasureStart);
+
+    super.remove();
   }
 
   selectButton(index) {
@@ -185,9 +192,6 @@ class LoopView extends CanvasView {
       this.setActivatedButton(this.activatedButton);
     }
 
-    // const cursorColor = isWhite ? '#ffffff' : '#000000';
-    // this.cursorRenderer.setColor(cursorColor);
-
     const instrumentIcons = this.setup.icon.instrument;
     const icon = isWhite ? instrumentIcons.white : instrumentIcons.black;
     this.model.icon = icon;
@@ -269,6 +273,7 @@ class LoopInstrument extends Instrument {
 
   showScreen() {
     const view = new LoopView(this, this.setup);
+    // const view = new View('', {}, {}, {});
     this.addView(view);
     this.addMotionListener('accelerationIncludingGravity', this.onAccelerationIncludingGravity);
   }

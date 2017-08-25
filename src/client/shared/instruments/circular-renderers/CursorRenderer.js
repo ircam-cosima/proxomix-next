@@ -10,7 +10,7 @@ import BaseArcRenderer from './BaseArcRenderer';
  */
 class CursorRenderer extends BaseArcRenderer {
   constructor(displayLength, options, getCurrentMetricPosition) {
-    super(0, displayLength);
+    super(0, displayLength, false);
 
     this.options = Object.assign({
       color: '#000000',
@@ -25,6 +25,12 @@ class CursorRenderer extends BaseArcRenderer {
     this.getCurrentMetricPosition = getCurrentMetricPosition;
   }
 
+  remove() {
+    super.remove();
+
+    this.getCurrentMetricPosition = null;
+  }
+
   setColor(value) {
     this._color = value;
   }
@@ -34,8 +40,6 @@ class CursorRenderer extends BaseArcRenderer {
   }
 
   render(ctx) {
-    const _ctx = this.cachedCtx;
-    const _$canvas = this.$cachedCanvas;
     const width = this.canvasWidth;
     const height = this.canvasHeight;
     const radius = this.radius;
@@ -45,37 +49,23 @@ class CursorRenderer extends BaseArcRenderer {
     const angle = this.getAngleFromPosition(currentPosition);
     const padding = 0;
 
-    // background
-    // _ctx.save();
-
-    // _ctx.globalCompositeOperation = 'destination-out';
-    // _ctx.fillStyle = '#000000';
-    // _ctx.globalAlpha = this.options.fadeOpacity;
-    // // _ctx.globalAlpha = 0.15;
-
-    // _ctx.fillRect(0, 0, width, height);
-    // _ctx.restore();
-
-    _ctx.clearRect(0, 0, width, height);
     // cursor
-    _ctx.save();
+    ctx.save();
 
-    _ctx.strokeStyle = this._color;
-    _ctx.globalAlpha = this._opacity;
-    _ctx.lineWidth = 3;
+    ctx.strokeStyle = this._color;
+    ctx.globalAlpha = this._opacity;
+    ctx.lineWidth = 3;
 
-    _ctx.translate(width / 2, height / 2);
-    _ctx.rotate(angle);
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(angle);
 
-    _ctx.beginPath();
-    _ctx.moveTo(radius - numZones * halfWidth + padding, 0);
-    _ctx.lineTo(radius + halfWidth + padding, 0);
-    _ctx.stroke();
-    _ctx.closePath();
+    ctx.beginPath();
+    ctx.moveTo(radius - numZones * halfWidth + padding, 0);
+    ctx.lineTo(radius + halfWidth + padding, 0);
+    ctx.stroke();
+    ctx.closePath();
 
-    _ctx.restore();
-
-    ctx.drawImage(_$canvas, 0, 0, width, height);
+    ctx.restore();
   }
 }
 

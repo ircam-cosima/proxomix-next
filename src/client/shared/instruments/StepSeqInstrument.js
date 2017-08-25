@@ -152,11 +152,16 @@ class OffScreenRenderer extends soundworks.Canvas2dRenderer {
     this.refresh();
   }
 
+  remove() {
+    this.offCanvas = null;
+    this.offCtx = null;
+  }
+
   add(renderer) {
     this.renderers.add(renderer);
   }
 
-  remove(renderer) {
+  delete(renderer) {
     this.renderers.remove(renderer);
   }
 
@@ -262,15 +267,6 @@ class StepRenderer extends soundworks.Canvas2dRenderer {
       ctx.restore();
     }
   }
-
-  onResize(width, height) {
-    super.onResize(width, height);
-
-    if (this.$cachedCanvas) {
-      this.$cachedCanvas.width = this.canvasWidth;
-      this.$cachedCanvas.height = this.canvasHeight;
-    }
-  }
 }
 
 class StepSeqView extends soundworks.CanvasView {
@@ -359,8 +355,14 @@ class StepSeqView extends soundworks.CanvasView {
   }
 
   remove() {
-    super.remove();
+    this.removeRenderer(this.offScreen);
+    this.removeRenderer(this.stepRenderer);
+
+    this.offScreen.remove();
+
     this.instrument.removeViewListener('touchstart', this.onTouchStart);
+
+    super.remove();
   }
 
   makeButtons(numButtons) {

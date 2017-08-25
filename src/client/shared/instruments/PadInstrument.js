@@ -90,14 +90,9 @@ class PadView extends soundworks.CanvasView {
       pad.addEventListener('touchstart', this.onTouchStartPad(i), false);
       pad.addEventListener('touchend', this.onTouchEndPad(i), false);
 
-
       container.appendChild(pad);
       this.pads.push(pad);
     }
-  }
-
-  remove() {
-    super.remove();
   }
 
   setForegroudColor(color) {

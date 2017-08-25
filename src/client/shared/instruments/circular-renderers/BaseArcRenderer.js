@@ -20,7 +20,7 @@ const _PIOver2 = _PI / 2;
  * @param {Number} displayLength - Number of measures represented by a full circle.
  */
 class BaseArcRenderer extends Canvas2dRenderer {
-  constructor(zone, displayLength) {
+  constructor(zone, displayLength, createCachedCanvas = true) {
     super();
 
     if (zone === undefined)
@@ -28,16 +28,26 @@ class BaseArcRenderer extends Canvas2dRenderer {
 
     this.zone = zone;
     this.displayLength = displayLength;
+    this.createCachedCanvas = createCachedCanvas;
 
     this._paddingRatio = PADDING_RATIO;
     this._arcWidthRatio = ARC_WIDTH_RATIO;
   }
 
   init() {
-    this.$cachedCanvas = document.createElement('canvas');
-    this.$cachedCanvas.width = this.canvasWidth;
-    this.$cachedCanvas.height = this.canvasHeight;
-    this.cachedCtx = this.$cachedCanvas.getContext('2d');
+    if (this.createCachedCanvas) {
+      this.$cachedCanvas = document.createElement('canvas');
+      this.$cachedCanvas.width = this.canvasWidth;
+      this.$cachedCanvas.height = this.canvasHeight;
+      this.cachedCtx = this.$cachedCanvas.getContext('2d');
+    }
+  }
+
+  remove() {
+    if (this.createCachedCanvas) {
+      this.$cachedCanvas = null;
+      this.cachedCtx = null;
+    }
   }
 
   onResize(width, height) {
