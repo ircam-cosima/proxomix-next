@@ -1,0 +1,19 @@
+{
+  "name": "fr.ircam.cosima",
+  "version": "0.0.1",
+  "displayName": "ProXoMix",
+  "cordova": {
+    "platforms": [
+      "ios"
+    ],
+    "plugins": {
+      "cordova-plugin-whitelist": {},
+      "com.unarin.cordova.beacon": {}
+    }
+  },
+  "dependencies": {
+    "cordova-ios": "~4.5.4",
+    "cordova-plugin-whitelist": "1",
+    "com.unarin.cordova.beacon": "https://github.com/petermetz/cordova-plugin-ibeacon.git"
+  }
+}

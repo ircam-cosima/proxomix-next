@@ -23,7 +23,7 @@
     "babel-runtime": "^6.6.1",
     "color-scheme": "0.0.5",
     "debug": "^2.1.2",
-    "soundworks": "collective-soundworks/soundworks#develop",
+    "soundworks": "collective-soundworks/soundworks#v2.1.2",
     "source-map-support": "^0.4.0"
   },
   "devDependencies": {
